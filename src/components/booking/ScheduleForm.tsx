@@ -6,7 +6,6 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { CalendarIcon, MapPin, Navigation, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Calendar } from '@/components/ui/calendar';
 import {
   Popover,
@@ -33,6 +32,7 @@ import { useCreateBooking } from '@/hooks/useBookings';
 import { useFavorites } from '@/hooks/useFavorites';
 import { ScheduleFormData } from '@/types';
 import { PricePreview } from './PricePreview';
+import { AddressAutocomplete } from '@/components/ui/address-autocomplete';
 
 const formSchema = z.object({
   pickupAddress: z.string().min(5, 'Endereço muito curto'),
@@ -104,10 +104,10 @@ export function ScheduleForm() {
                 </FormLabel>
                 <FormControl>
                   <div className="space-y-2">
-                    <Input
+                    <AddressAutocomplete
+                      value={field.value}
+                      onChange={(value) => field.onChange(value)}
                       placeholder="Digite o endereço de partida"
-                      {...field}
-                      className="h-12"
                     />
                     {favorites.length > 0 && (
                       <div className="flex flex-wrap gap-2">
@@ -143,10 +143,10 @@ export function ScheduleForm() {
                 </FormLabel>
                 <FormControl>
                   <div className="space-y-2">
-                    <Input
+                    <AddressAutocomplete
+                      value={field.value}
+                      onChange={(value) => field.onChange(value)}
                       placeholder="Digite o endereço de destino"
-                      {...field}
-                      className="h-12"
                     />
                     {favorites.length > 0 && (
                       <div className="flex flex-wrap gap-2">
