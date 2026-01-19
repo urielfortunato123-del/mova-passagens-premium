@@ -81,6 +81,20 @@
     @apply border-border;
   }
 
+  /* Smooth theme transitions */
+  *,
+  *::before,
+  *::after {
+    transition-property: background-color, border-color, color, fill, stroke, box-shadow;
+    transition-duration: 0.3s;
+    transition-timing-function: ease;
+  }
+
+  /* Disable transitions for animations to avoid conflicts */
+  [class*="animate-"] {
+    transition: none;
+  }
+
   body {
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
