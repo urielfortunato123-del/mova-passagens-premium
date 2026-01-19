@@ -1,13 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, Phone, MapPin, LogOut, Star, ChevronRight, Loader2, Moon, Sun } from 'lucide-react';
-import { useTheme } from 'next-themes';
+import { User, Mail, Phone, MapPin, LogOut, ChevronRight, Loader2, Settings, CheckCircle2 } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -24,7 +22,6 @@ export default function Profile() {
   const navigate = useNavigate();
   const { passengerProfile, logout, refreshProfile } = useAuth();
   const { toast } = useToast();
-  const { theme, setTheme, resolvedTheme } = useTheme();
   const [editOpen, setEditOpen] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [formData, setFormData] = useState({
@@ -75,108 +72,80 @@ export default function Profile() {
     <>
       <Header title="Perfil" />
       <PageContainer>
-        <div className="space-y-6 animate-fade-in">
-          {/* Profile Header */}
-          <div className="text-center space-y-4">
-            <div className="w-24 h-24 rounded-full bg-secondary flex items-center justify-center mx-auto">
-              <User className="w-12 h-12 text-muted-foreground" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold">{passengerProfile?.name}</h2>
-              <p className="text-muted-foreground">{passengerProfile?.email}</p>
+        <div className="space-y-4 animate-fade-in">
+          {/* Profile Card */}
+          <div className="premium-card p-6">
+            <div className="flex items-center gap-4">
+              <div className="w-20 h-20 rounded-full bg-secondary flex items-center justify-center">
+                <User className="w-10 h-10 text-muted-foreground" />
+              </div>
+              <div className="flex-1">
+                <h2 className="text-xl font-bold">{passengerProfile?.name}</h2>
+                <div className="flex items-center gap-1 mt-1">
+                  <CheckCircle2 className="w-4 h-4 text-status-confirmed" />
+                  <span className="text-sm text-status-confirmed font-medium">Cliente ativo</span>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Info Cards */}
-          <div className="space-y-3">
-            <button
-              onClick={() => {
-                setFormData({
-                  name: passengerProfile?.name || '',
-                  phone: passengerProfile?.phone || '',
-                  city: passengerProfile?.city || '',
-                });
-                setEditOpen(true);
-              }}
-              className="w-full premium-card p-4 flex items-center gap-4 text-left"
-            >
-              <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
-                <User className="w-5 h-5 text-muted-foreground" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm text-muted-foreground">Dados pessoais</p>
-                <p className="font-medium">{passengerProfile?.name}</p>
-              </div>
-              <ChevronRight className="w-5 h-5 text-muted-foreground" />
-            </button>
-
+          {/* Contact Section */}
+          <div className="premium-card p-4 space-y-4">
+            <h3 className="text-sm text-muted-foreground font-medium">Contato</h3>
+            
+            <div className="flex items-center gap-3">
+              <Mail className="w-5 h-5 text-muted-foreground" />
+              <span className="text-sm">{passengerProfile?.email}</span>
+            </div>
+            
             {passengerProfile?.phone && (
-              <div className="premium-card p-4 flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
-                  <Phone className="w-5 h-5 text-muted-foreground" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-muted-foreground">Telefone</p>
-                  <p className="font-medium">{passengerProfile.phone}</p>
-                </div>
+              <div className="flex items-center gap-3">
+                <Phone className="w-5 h-5 text-muted-foreground" />
+                <span className="text-sm">{passengerProfile.phone}</span>
               </div>
             )}
-
-            <div className="premium-card p-4 flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
-                <Mail className="w-5 h-5 text-muted-foreground" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm text-muted-foreground">Email</p>
-                <p className="font-medium">{passengerProfile?.email}</p>
-              </div>
-            </div>
-
-            <button
-              onClick={() => navigate('/favorites')}
-              className="w-full premium-card p-4 flex items-center gap-4 text-left"
-            >
-              <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
-                <Star className="w-5 h-5 text-muted-foreground" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm text-muted-foreground">Endereços favoritos</p>
-                <p className="font-medium">Gerenciar locais salvos</p>
-              </div>
-              <ChevronRight className="w-5 h-5 text-muted-foreground" />
-            </button>
-
-            {/* Theme Toggle */}
-            <div className="premium-card p-4 flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
-                {resolvedTheme === 'dark' ? (
-                  <Moon className="w-5 h-5 text-muted-foreground" />
-                ) : (
-                  <Sun className="w-5 h-5 text-muted-foreground" />
-                )}
-              </div>
-              <div className="flex-1">
-                <p className="text-sm text-muted-foreground">Aparência</p>
-                <p className="font-medium">
-                  {resolvedTheme === 'dark' ? 'Modo escuro' : 'Modo claro'}
-                </p>
-              </div>
-              <Switch
-                checked={resolvedTheme === 'dark'}
-                onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
-              />
-            </div>
           </div>
 
-          {/* Logout */}
-          <Button
-            variant="destructive"
-            className="w-full h-12"
-            onClick={handleLogout}
+          {/* Location Section */}
+          {passengerProfile?.city && (
+            <div className="premium-card p-4 space-y-4">
+              <h3 className="text-sm text-muted-foreground font-medium">Localização</h3>
+              
+              <div className="flex items-center gap-3">
+                <MapPin className="w-5 h-5 text-muted-foreground" />
+                <span className="text-sm">{passengerProfile.city}</span>
+              </div>
+            </div>
+          )}
+
+          {/* Edit Profile */}
+          <button
+            onClick={() => {
+              setFormData({
+                name: passengerProfile?.name || '',
+                phone: passengerProfile?.phone || '',
+                city: passengerProfile?.city || '',
+              });
+              setEditOpen(true);
+            }}
+            className="w-full premium-card p-4 flex items-center justify-between text-left"
           >
-            <LogOut className="w-5 h-5 mr-2" />
-            Sair da conta
-          </Button>
+            <div className="flex items-center gap-3">
+              <Settings className="w-5 h-5 text-muted-foreground" />
+              <span className="font-medium">Editar Perfil</span>
+            </div>
+            <ChevronRight className="w-5 h-5 text-muted-foreground" />
+          </button>
+
+          {/* Logout */}
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-4 py-4 text-destructive"
+          >
+            <LogOut className="w-5 h-5" />
+            <span className="font-medium">Sair</span>
+            <ChevronRight className="w-5 h-5 ml-auto" />
+          </button>
         </div>
       </PageContainer>
 

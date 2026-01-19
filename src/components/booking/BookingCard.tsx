@@ -1,6 +1,6 @@
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { MapPin, Clock, Car } from 'lucide-react';
+import { MapPin, Clock, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Booking } from '@/types';
 import { StatusChip } from '@/components/ui/status-chip';
@@ -22,51 +22,44 @@ export function BookingCard({ booking, className }: BookingCardProps) {
     <button
       onClick={() => navigate(`/bookings/${booking.id}`)}
       className={cn(
-        'w-full text-left premium-card p-4 space-y-3 transition-all duration-200 hover:border-primary/50',
-        isActive && 'ring-2 ring-primary/50',
+        'w-full text-left premium-card p-4 border-l-4 transition-all duration-200 hover:shadow-xl',
+        isActive ? 'border-l-primary ring-1 ring-primary/30' : 'border-l-primary',
+        isPast && 'opacity-75 border-l-muted-foreground',
         className
       )}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Clock className="w-4 h-4" />
-          <span className="font-medium">
-            {format(pickupDate, "dd MMM, HH:mm", { locale: ptBR })}
-          </span>
+      {/* Header Row */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Clock className="w-4 h-4 text-muted-foreground" />
+            <span className="font-bold text-lg">
+              {format(pickupDate, 'HH:mm')}
+            </span>
+          </div>
+          <StatusChip status={booking.status} />
         </div>
-        <StatusChip status={booking.status} />
+        <div className="flex items-center gap-1">
+          <span className={cn(
+            'font-bold text-lg',
+            isPast ? 'text-muted-foreground' : 'text-primary'
+          )}>
+            R$ {(booking.finalValue || booking.estimatedValue).toFixed(2)}
+          </span>
+          <ArrowRight className="w-4 h-4 text-muted-foreground" />
+        </div>
       </div>
 
+      {/* Addresses */}
       <div className="space-y-2">
         <div className="flex items-start gap-2">
-          <div className="mt-1 w-2 h-2 rounded-full bg-primary" />
-          <p className="text-sm flex-1 line-clamp-1">{booking.pickupAddress}</p>
+          <MapPin className="w-4 h-4 mt-0.5 text-primary shrink-0" />
+          <p className="text-sm line-clamp-1">{booking.pickupAddress}</p>
         </div>
         <div className="flex items-start gap-2">
-          <div className="mt-1 w-2 h-2 rounded-full bg-status-completed" />
-          <p className="text-sm flex-1 line-clamp-1">{booking.dropoffAddress}</p>
+          <MapPin className="w-4 h-4 mt-0.5 text-destructive shrink-0" />
+          <p className="text-sm line-clamp-1">{booking.dropoffAddress}</p>
         </div>
-      </div>
-
-      <div className="flex items-center justify-between pt-2 border-t border-border/50">
-        <div className="flex items-center gap-2 text-sm">
-          {booking.driverName ? (
-            <>
-              <Car className="w-4 h-4 text-muted-foreground" />
-              <span className="text-muted-foreground">
-                {booking.driverName} • {booking.plate}
-              </span>
-            </>
-          ) : (
-            <span className="text-muted-foreground">Aguardando motorista</span>
-          )}
-        </div>
-        <span className={cn(
-          'font-semibold',
-          isPast ? 'text-muted-foreground' : 'text-primary'
-        )}>
-          R$ {(booking.finalValue || booking.estimatedValue).toFixed(2)}
-        </span>
       </div>
     </button>
   );

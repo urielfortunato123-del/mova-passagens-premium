@@ -1,65 +1,105 @@
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Calendar, Clock, MapPin, ArrowRight, Star, Car, Bell, TrendingUp } from 'lucide-react';
+import { Calendar, Clock, MapPin, ArrowRight, Car, DollarSign, TrendingUp, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/layout/Header';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { StatusChip } from '@/components/ui/status-chip';
-import { StatsCard } from '@/components/home/StatsCard';
-import { RecentRides } from '@/components/home/RecentRides';
-import { ThemeToggleSimple } from '@/components/ui/theme-toggle';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNextBooking, useActiveRide, useBookings, useRecentBookings } from '@/hooks/useBookings';
-import { useFavorites } from '@/hooks/useFavorites';
-import { useNotifications } from '@/hooks/useNotifications';
 
 export default function Home() {
   const navigate = useNavigate();
   const { passengerProfile } = useAuth();
   const { data: nextBooking } = useNextBooking();
   const { data: activeRide } = useActiveRide();
-  const { data: favorites = [] } = useFavorites();
   const { data: recentBookings = [] } = useRecentBookings(3);
-  const { data: allBookings = [] } = useBookings(['completed']);
-  const { isGranted, requestPermission } = useNotifications();
+  const { data: allBookings = [] } = useBookings();
+  const { data: completedBookings = [] } = useBookings(['completed']);
 
   const greeting = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return 'Bom dia';
-    if (hour < 18) return 'Boa tarde';
-    return 'Boa noite';
+    if (hour < 12) return 'Olá,';
+    if (hour < 18) return 'Olá,';
+    return 'Olá,';
   };
 
   // Calculate stats
-  const totalRides = allBookings.length;
-  const totalSpent = allBookings.reduce(
+  const todayBookings = allBookings.filter(b => {
+    const today = new Date();
+    const bookingDate = new Date(b.pickupTime);
+    return bookingDate.toDateString() === today.toDateString() && 
+      ['requested', 'confirmed', 'enroute', 'arrived', 'in_progress'].includes(b.status);
+  });
+
+  const totalSpent = completedBookings.reduce(
     (acc, b) => acc + (b.finalValue || b.estimatedValue),
     0
   );
 
+  const nextBookingTime = nextBooking ? format(new Date(nextBooking.pickupTime), 'HH:mm') : '--:--';
+
   return (
     <>
-      <Header title="MOVA" rightContent={<ThemeToggleSimple />} />
+      <Header title="MOVA" />
       <PageContainer>
         <div className="space-y-6 animate-fade-in">
-          {/* Greeting + Notification Bell */}
-          <div className="flex items-start justify-between">
-            <div className="space-y-1">
-              <p className="text-muted-foreground text-sm">{greeting()},</p>
-              <h2 className="text-2xl font-bold">
-                {passengerProfile?.name?.split(' ')[0] || 'Passageiro'}
-              </h2>
+          {/* Greeting */}
+          <div className="space-y-0">
+            <p className="text-muted-foreground text-sm">{greeting()}</p>
+            <h2 className="text-3xl font-bold">
+              {passengerProfile?.name?.split(' ')[0] || 'Passageiro'}
+            </h2>
+          </div>
+
+          {/* Stats Cards - Grid 2x2 */}
+          <div className="grid grid-cols-2 gap-3">
+            {/* Corridas Hoje */}
+            <div className="premium-card p-4 flex flex-col">
+              <div className="flex items-start justify-between">
+                <span className="text-sm text-muted-foreground">Corridas Hoje</span>
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <Calendar className="w-5 h-5 text-primary" />
+                </div>
+              </div>
+              <span className="text-3xl font-bold mt-2">{todayBookings.length}</span>
             </div>
-            {!isGranted && (
-              <button
-                onClick={requestPermission}
-                className="p-3 rounded-full bg-secondary hover:bg-secondary/80 transition-colors"
-                title="Ativar notificações"
-              >
-                <Bell className="w-5 h-5 text-muted-foreground" />
-              </button>
-            )}
+
+            {/* Próxima às */}
+            <div className="premium-card p-4 flex flex-col">
+              <div className="flex items-start justify-between">
+                <span className="text-sm text-muted-foreground">Próxima às</span>
+                <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
+                  <Clock className="w-5 h-5 text-muted-foreground" />
+                </div>
+              </div>
+              <span className="text-3xl font-bold mt-2">{nextBookingTime}</span>
+            </div>
+
+            {/* Total Gasto */}
+            <div className="premium-card p-4 flex flex-col border-l-4 border-l-primary">
+              <div className="flex items-start justify-between">
+                <span className="text-sm text-muted-foreground">Total Gasto</span>
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <DollarSign className="w-5 h-5 text-primary" />
+                </div>
+              </div>
+              <span className="text-2xl font-bold mt-2 text-primary">
+                R$ {totalSpent.toFixed(0)}
+              </span>
+            </div>
+
+            {/* Concluídas */}
+            <div className="premium-card p-4 flex flex-col">
+              <div className="flex items-start justify-between">
+                <span className="text-sm text-muted-foreground">Concluídas</span>
+                <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
+                  <TrendingUp className="w-5 h-5 text-muted-foreground" />
+                </div>
+              </div>
+              <span className="text-3xl font-bold mt-2">{completedBookings.length}</span>
+            </div>
           </div>
 
           {/* Active Ride Banner */}
@@ -85,115 +125,57 @@ export default function Home() {
             </button>
           )}
 
-          {/* Quick Actions */}
-          <div className="grid grid-cols-2 gap-3">
-            <Button
-              onClick={() => navigate('/schedule')}
-              className="h-24 flex-col gap-2 hover-scale"
-              size="lg"
-            >
-              <Calendar className="w-6 h-6" />
-              <span>Agendar corrida</span>
-            </Button>
-            <Button
-              onClick={() => navigate('/bookings')}
-              variant="secondary"
-              className="h-24 flex-col gap-2 hover-scale"
-              size="lg"
-            >
-              <Clock className="w-6 h-6" />
-              <span>Meus agendamentos</span>
-            </Button>
-          </div>
-
-          {/* Stats Cards */}
-          {totalRides > 0 && (
-            <div className="grid grid-cols-2 gap-3">
-              <StatsCard
-                title="Corridas"
-                value={totalRides}
-                icon={Car}
-              />
-              <StatsCard
-                title="Total gasto"
-                value={`R$ ${totalSpent.toFixed(0)}`}
-                icon={TrendingUp}
-              />
-            </div>
-          )}
+          {/* Main Action Button */}
+          <Button
+            onClick={() => navigate('/bookings')}
+            variant="secondary"
+            className="w-full h-14 text-base font-semibold bg-[hsl(222,47%,11%)] dark:bg-[hsl(222,47%,16%)] text-white hover:bg-[hsl(222,47%,15%)] dark:hover:bg-[hsl(222,47%,20%)]"
+          >
+            <Calendar className="w-5 h-5 mr-2" />
+            Ver Corridas Agendadas
+          </Button>
 
           {/* Next Booking */}
           {nextBooking && !activeRide && (
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-muted-foreground">
-                Próxima corrida
-              </h3>
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold">Próxima Corrida</h3>
+                <span className="text-sm text-muted-foreground">
+                  {format(new Date(nextBooking.pickupTime), 'HH:mm')}
+                </span>
+              </div>
+              
               <button
                 onClick={() => navigate(`/bookings/${nextBooking.id}`)}
-                className="w-full premium-card p-4 text-left space-y-3 hover-scale"
+                className="w-full premium-card p-4 text-left border-l-4 border-l-primary hover-scale"
               >
-                <div className="flex items-start justify-between">
+                <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <Clock className="w-4 h-4 text-muted-foreground" />
-                    <span className="font-medium">
-                      {format(new Date(nextBooking.pickupTime), "dd MMM, HH:mm", { locale: ptBR })}
+                    <span className="font-bold text-lg">
+                      {format(new Date(nextBooking.pickupTime), 'HH:mm')}
                     </span>
+                    <StatusChip status={nextBooking.status} />
                   </div>
-                  <StatusChip status={nextBooking.status} />
+                  <div className="flex items-center gap-1">
+                    <span className="font-bold text-lg text-primary">
+                      R$ {nextBooking.estimatedValue.toFixed(2)}
+                    </span>
+                    <ArrowRight className="w-4 h-4 text-muted-foreground" />
+                  </div>
                 </div>
 
                 <div className="space-y-2">
                   <div className="flex items-start gap-2">
-                    <div className="mt-1.5 w-2 h-2 rounded-full bg-primary" />
+                    <MapPin className="w-4 h-4 mt-0.5 text-primary" />
                     <p className="text-sm line-clamp-1">{nextBooking.pickupAddress}</p>
                   </div>
                   <div className="flex items-start gap-2">
-                    <div className="mt-1.5 w-2 h-2 rounded-full bg-status-completed" />
+                    <MapPin className="w-4 h-4 mt-0.5 text-destructive" />
                     <p className="text-sm line-clamp-1">{nextBooking.dropoffAddress}</p>
                   </div>
                 </div>
-
-                <div className="flex items-center justify-between pt-2 border-t border-border/50">
-                  <span className="text-sm text-muted-foreground">
-                    {nextBooking.driverName ? `${nextBooking.driverName} • ${nextBooking.plate}` : 'Aguardando motorista'}
-                  </span>
-                  <span className="font-semibold text-primary">
-                    R$ {nextBooking.estimatedValue.toFixed(2)}
-                  </span>
-                </div>
               </button>
-            </div>
-          )}
-
-          {/* Recent Rides */}
-          <RecentRides bookings={recentBookings} />
-
-          {/* Favorites Quick Access */}
-          {favorites.length > 0 && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-medium text-muted-foreground">
-                  Endereços favoritos
-                </h3>
-                <button
-                  onClick={() => navigate('/favorites')}
-                  className="text-xs text-primary font-medium"
-                >
-                  Ver todos
-                </button>
-              </div>
-              <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-4 px-4">
-                {favorites.slice(0, 4).map((fav) => (
-                  <button
-                    key={fav.id}
-                    onClick={() => navigate('/schedule')}
-                    className="flex items-center gap-2 px-4 py-3 rounded-xl bg-secondary hover:bg-secondary/80 transition-colors shrink-0 hover-scale"
-                  >
-                    <Star className="w-4 h-4 text-primary" />
-                    <span className="text-sm font-medium">{fav.label}</span>
-                  </button>
-                ))}
-              </div>
             </div>
           )}
 

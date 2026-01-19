@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { Calendar, Filter } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { PageContainer } from '@/components/layout/PageContainer';
@@ -11,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useBookings } from '@/hooks/useBookings';
-import { BookingStatus } from '@/types';
+import { BookingStatus, Booking } from '@/types';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const statusOptions: { value: BookingStatus; label: string }[] = [
@@ -23,6 +25,11 @@ const statusOptions: { value: BookingStatus; label: string }[] = [
   { value: 'completed', label: 'Concluído' },
   { value: 'cancelled', label: 'Cancelado' },
 ];
+
+interface GroupedBookings {
+  date: Date;
+  bookings: Booking[];
+}
 
 export default function Bookings() {
   const [statusFilter, setStatusFilter] = useState<BookingStatus[]>([]);
@@ -36,17 +43,68 @@ export default function Bookings() {
     );
   };
 
-  const upcomingBookings = bookings.filter((b) =>
-    ['requested', 'confirmed', 'enroute', 'arrived', 'in_progress'].includes(b.status)
-  );
-  const pastBookings = bookings.filter((b) =>
-    ['completed', 'cancelled'].includes(b.status)
-  );
+  // Group bookings by date
+  const groupedBookings = useMemo(() => {
+    const groups: Record<string, Booking[]> = {};
+    
+    bookings.forEach((booking) => {
+      const dateKey = format(new Date(booking.pickupTime), 'yyyy-MM-dd');
+      if (!groups[dateKey]) {
+        groups[dateKey] = [];
+      }
+      groups[dateKey].push(booking);
+    });
+
+    // Sort each group by time
+    Object.keys(groups).forEach((key) => {
+      groups[key].sort((a, b) => 
+        new Date(a.pickupTime).getTime() - new Date(b.pickupTime).getTime()
+      );
+    });
+
+    // Convert to array and sort by date (newest first for past, upcoming first for future)
+    return Object.entries(groups)
+      .map(([dateKey, bookings]) => ({
+        date: new Date(dateKey),
+        bookings,
+      }))
+      .sort((a, b) => a.date.getTime() - b.date.getTime());
+  }, [bookings]);
+
+  const upcomingDays = groupedBookings.filter(group => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return group.date >= today && group.bookings.some(b => 
+      !['completed', 'cancelled'].includes(b.status)
+    );
+  });
+
+  const pastDays = groupedBookings.filter(group => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return group.date < today || group.bookings.every(b => 
+      ['completed', 'cancelled'].includes(b.status)
+    );
+  }).reverse();
+
+  const formatDateHeader = (date: Date) => {
+    const today = new Date();
+    const isToday = date.toDateString() === today.toDateString();
+    
+    if (isToday) {
+      return 'Hoje';
+    }
+    
+    return format(date, "EEEE, d 'De' MMMM", { locale: ptBR })
+      .split(' ')
+      .map((word, i) => i === 0 ? word.charAt(0).toUpperCase() + word.slice(1) : word)
+      .join(' ');
+  };
 
   return (
     <>
       <Header
-        title="Meus agendamentos"
+        title="Corridas"
         rightContent={
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -78,7 +136,7 @@ export default function Bookings() {
           {isLoading ? (
             <div className="space-y-4">
               {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-40 rounded-2xl" />
+                <Skeleton key={i} className="h-32 rounded-2xl" />
               ))}
             </div>
           ) : bookings.length === 0 ? (
@@ -97,45 +155,69 @@ export default function Bookings() {
             </div>
           ) : (
             <>
-              {/* Upcoming */}
-              {upcomingBookings.length > 0 && (
-                <div className="space-y-3">
-                  <h3 className="text-sm font-medium text-muted-foreground">
-                    Próximas corridas ({upcomingBookings.length})
-                  </h3>
+              {/* Upcoming by Day */}
+              {upcomingDays.map((group, groupIndex) => (
+                <div key={group.date.toISOString()} className="space-y-3">
+                  {/* Date Header */}
+                  <div className="flex items-center gap-2 py-2 border-b border-border">
+                    <Calendar className="w-5 h-5 text-muted-foreground" />
+                    <div>
+                      <span className="font-semibold">{formatDateHeader(group.date)}</span>
+                      <span className="text-sm text-muted-foreground ml-2">
+                        {group.bookings.length} corrida{group.bookings.length > 1 ? 's' : ''} agendada{group.bookings.length > 1 ? 's' : ''}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {/* Bookings */}
                   <div className="space-y-3">
-                    {upcomingBookings.map((booking, index) => (
+                    {group.bookings.map((booking, index) => (
                       <div
                         key={booking.id}
                         className="animate-fade-in"
-                        style={{ animationDelay: `${index * 100}ms` }}
+                        style={{ animationDelay: `${(groupIndex * 3 + index) * 50}ms` }}
                       >
                         <BookingCard booking={booking} />
                       </div>
                     ))}
                   </div>
                 </div>
-              )}
+              ))}
 
-              {/* Past */}
-              {pastBookings.length > 0 && (
-                <div className="space-y-3">
-                  <h3 className="text-sm font-medium text-muted-foreground">
-                    Histórico ({pastBookings.length})
-                  </h3>
+              {/* Past Rides */}
+              {pastDays.length > 0 && upcomingDays.length > 0 && (
+                <div className="pt-4 border-t border-border">
+                  <h3 className="text-sm font-medium text-muted-foreground mb-4">Histórico</h3>
+                </div>
+              )}
+              
+              {pastDays.map((group, groupIndex) => (
+                <div key={group.date.toISOString()} className="space-y-3 opacity-75">
+                  {/* Date Header */}
+                  <div className="flex items-center gap-2 py-2 border-b border-border">
+                    <Calendar className="w-5 h-5 text-muted-foreground" />
+                    <div>
+                      <span className="font-semibold">{formatDateHeader(group.date)}</span>
+                      <span className="text-sm text-muted-foreground ml-2">
+                        {group.bookings.length} corrida{group.bookings.length > 1 ? 's' : ''}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {/* Bookings */}
                   <div className="space-y-3">
-                    {pastBookings.map((booking, index) => (
+                    {group.bookings.map((booking, index) => (
                       <div
                         key={booking.id}
-                        className="animate-fade-in opacity-75"
-                        style={{ animationDelay: `${(upcomingBookings.length + index) * 100}ms` }}
+                        className="animate-fade-in"
+                        style={{ animationDelay: `${(upcomingDays.length * 3 + groupIndex * 3 + index) * 50}ms` }}
                       >
                         <BookingCard booking={booking} />
                       </div>
                     ))}
                   </div>
                 </div>
-              )}
+              ))}
             </>
           )}
         </div>
