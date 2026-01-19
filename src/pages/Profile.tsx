@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, Phone, MapPin, LogOut, Star, ChevronRight, Loader2 } from 'lucide-react';
+import { User, Mail, Phone, MapPin, LogOut, Star, ChevronRight, Loader2, Moon, Sun } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import { Header } from '@/components/layout/Header';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -22,6 +24,7 @@ export default function Profile() {
   const navigate = useNavigate();
   const { passengerProfile, logout, refreshProfile } = useAuth();
   const { toast } = useToast();
+  const { theme, setTheme, resolvedTheme } = useTheme();
   const [editOpen, setEditOpen] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [formData, setFormData] = useState({
@@ -142,6 +145,27 @@ export default function Profile() {
               </div>
               <ChevronRight className="w-5 h-5 text-muted-foreground" />
             </button>
+
+            {/* Theme Toggle */}
+            <div className="premium-card p-4 flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
+                {resolvedTheme === 'dark' ? (
+                  <Moon className="w-5 h-5 text-muted-foreground" />
+                ) : (
+                  <Sun className="w-5 h-5 text-muted-foreground" />
+                )}
+              </div>
+              <div className="flex-1">
+                <p className="text-sm text-muted-foreground">Aparência</p>
+                <p className="font-medium">
+                  {resolvedTheme === 'dark' ? 'Modo escuro' : 'Modo claro'}
+                </p>
+              </div>
+              <Switch
+                checked={resolvedTheme === 'dark'}
+                onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
+              />
+            </div>
           </div>
 
           {/* Logout */}
