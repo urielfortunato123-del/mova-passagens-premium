@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -9,8 +9,15 @@ import { Button } from '@/components/ui/button';
 import { DriverStatusBadge } from '@/components/ui/driver-status-badge';
 import { WaitTimer } from '@/components/ui/wait-timer';
 import { ChatDrawer } from '@/components/chat/ChatDrawer';
+import { LiveRideMap } from '@/components/map/LiveRideMap';
 import { useActiveRide } from '@/hooks/useBookings';
 import { Skeleton } from '@/components/ui/skeleton';
+
+// Mock positions for demo - São Paulo area
+const MOCK_POSITIONS = {
+  pickup: { lat: -23.5505, lng: -46.6333 }, // Centro SP
+  dropoff: { lat: -23.5629, lng: -46.6544 }, // Paulista
+};
 
 export default function LiveRide() {
   const navigate = useNavigate();
@@ -19,6 +26,9 @@ export default function LiveRide() {
 
   // Mock ETA for demo
   const [eta, setEta] = useState(8);
+  
+  // Simulate driver position moving towards pickup/dropoff
+  const [driverPosition, setDriverPosition] = useState({ lat: -23.5605, lng: -46.6433 });
 
   useEffect(() => {
     if (!isLoading && !activeRide) {
@@ -26,16 +36,36 @@ export default function LiveRide() {
     }
   }, [activeRide, isLoading, navigate]);
 
-  // Simulate ETA countdown when driver is enroute
+  // Simulate ETA countdown and driver movement when enroute
   useEffect(() => {
     if (activeRide?.status === 'enroute' && eta > 0) {
       const timer = setInterval(() => {
         setEta((prev) => Math.max(0, prev - 1));
-      }, 30000); // Decrease every 30 seconds for demo
+        
+        // Move driver towards pickup
+        setDriverPosition((prev) => ({
+          lat: prev.lat + (MOCK_POSITIONS.pickup.lat - prev.lat) * 0.1,
+          lng: prev.lng + (MOCK_POSITIONS.pickup.lng - prev.lng) * 0.1,
+        }));
+      }, 3000); // Update every 3 seconds for demo
 
       return () => clearInterval(timer);
     }
   }, [activeRide?.status, eta]);
+
+  // Simulate driver movement during ride
+  useEffect(() => {
+    if (activeRide?.status === 'in_progress') {
+      const timer = setInterval(() => {
+        setDriverPosition((prev) => ({
+          lat: prev.lat + (MOCK_POSITIONS.dropoff.lat - prev.lat) * 0.05,
+          lng: prev.lng + (MOCK_POSITIONS.dropoff.lng - prev.lng) * 0.05,
+        }));
+      }, 2000);
+
+      return () => clearInterval(timer);
+    }
+  }, [activeRide?.status]);
 
   if (isLoading) {
     return (
@@ -77,35 +107,20 @@ export default function LiveRide() {
       <Header title="Corrida ao vivo" showBack onBack={() => navigate('/home')} />
       <PageContainer noPadding>
         <div className="space-y-4 animate-fade-in">
-          {/* Map placeholder with animated car */}
-          <div className="h-64 bg-gradient-to-b from-secondary to-muted relative overflow-hidden">
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="text-center">
-                <div
-                  className={`w-20 h-20 rounded-full flex items-center justify-center mx-auto ${
-                    activeRide.status === 'enroute'
-                      ? 'bg-status-enroute/20 animate-pulse-slow'
-                      : activeRide.status === 'arrived'
-                      ? 'bg-status-arrived/20 animate-bounce-subtle'
-                      : 'bg-status-in-progress/20'
-                  }`}
-                >
-                  {activeRide.status === 'enroute' ? (
-                    <Navigation className="w-10 h-10 text-status-enroute" />
-                  ) : activeRide.status === 'arrived' ? (
-                    <MapPin className="w-10 h-10 text-status-arrived" />
-                  ) : (
-                    <Car className="w-10 h-10 text-status-in-progress" />
-                  )}
-                </div>
-                <p className="text-sm text-muted-foreground mt-4">
-                  Mapa em tempo real (MVP)
-                </p>
-              </div>
-            </div>
-
+          {/* Real Map with Leaflet */}
+          <div className="h-72 relative overflow-hidden">
+            <LiveRideMap
+              driverPosition={driverPosition}
+              pickupPosition={MOCK_POSITIONS.pickup}
+              dropoffPosition={MOCK_POSITIONS.dropoff}
+              status={activeRide.status}
+              driverName={activeRide.driverName}
+              pickupAddress={activeRide.pickupAddress}
+              dropoffAddress={activeRide.dropoffAddress}
+            />
+            
             {/* Status pill overlay */}
-            <div className="absolute top-4 left-1/2 -translate-x-1/2">
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000]">
               <DriverStatusBadge status={activeRide.status} eta={activeRide.status === 'enroute' ? eta : undefined} />
             </div>
           </div>
