@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Eye, EyeOff, Loader2, Car } from 'lucide-react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/form';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
+import movaHero from '@/assets/mova-hero.png';
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -79,19 +80,15 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      {/* Hero Section */}
-      <div className="flex-1 flex flex-col items-center justify-center px-6 pt-12 pb-8">
-        <div className="animate-fade-in space-y-4 text-center">
-          <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto">
-            <Car className="w-10 h-10 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">MOVA</h1>
-            <p className="text-muted-foreground mt-2">
-              Mobilidade que respeita seu tempo
-            </p>
-          </div>
-        </div>
+      {/* Hero Section with Cover Image */}
+      <div className="relative h-[45vh] min-h-[280px] w-full overflow-hidden">
+        <img 
+          src={movaHero} 
+          alt="MOVA - Mobilidade que respeita seu tempo" 
+          className="absolute inset-0 w-full h-full object-cover object-center"
+        />
+        {/* Gradient overlay for better text readability and smooth transition */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background" />
       </div>
 
       {/* Auth Form */}
