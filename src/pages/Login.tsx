@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Mail, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -14,7 +14,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
 import movaHero from '@/assets/mova-hero.png';
 
@@ -35,7 +34,7 @@ type SignUpValues = z.infer<typeof signUpSchema>;
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
-  const [activeTab, setActiveTab] = useState('login');
+  const [isSignUp, setIsSignUp] = useState(false);
   const { login, signUp, isLoading, user } = useAuth();
   const navigate = useNavigate();
 
@@ -81,206 +80,241 @@ export default function Login() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       {/* Hero Section with Cover Image */}
-      <div className="relative h-[45vh] min-h-[280px] w-full overflow-hidden">
+      <div className="relative h-[40vh] min-h-[260px] w-full overflow-hidden">
         <img 
           src={movaHero} 
           alt="MOVA - Mobilidade que respeita seu tempo" 
           className="absolute inset-0 w-full h-full object-cover object-[center_30%] animate-fade-in"
         />
-        {/* Gradient overlay for better text readability and smooth transition */}
+        {/* Gradient overlay for smooth transition */}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background" />
       </div>
 
       {/* Auth Form */}
-      <div className="px-6 pb-8 animate-slide-up">
-        <div className="premium-card p-6">
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="login">Entrar</TabsTrigger>
-              <TabsTrigger value="signup">Criar conta</TabsTrigger>
-            </TabsList>
+      <div className="flex-1 px-6 pb-8 -mt-4 relative z-10">
+        <div className="max-w-md mx-auto">
+          {/* Title and Slogan */}
+          <div className="text-center mb-6">
+            <h1 className="text-2xl font-bold">Cliente</h1>
+            <p className="text-muted-foreground mt-1">Mobilidade que respeita seu tempo.</p>
+          </div>
 
-            <TabsContent value="login" className="space-y-4">
-              <Form {...loginForm}>
-                <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4">
-                  <FormField
-                    control={loginForm.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
+          {isSignUp ? (
+            /* Sign Up Form */
+            <Form {...signUpForm}>
+              <form onSubmit={signUpForm.handleSubmit(handleSignUp)} className="space-y-4">
+                <FormField
+                  control={signUpForm.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nome completo</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Seu nome"
+                          className="h-12"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={signUpForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>E-mail</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                           <Input
                             type="email"
                             placeholder="seu@email.com"
-                            className="h-12"
+                            className="h-12 pl-12"
                             {...field}
                           />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-                  <FormField
-                    control={loginForm.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Senha</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <Input
-                              type={showPassword ? 'text' : 'password'}
-                              placeholder="••••••"
-                              className="h-12 pr-12"
-                              {...field}
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setShowPassword(!showPassword)}
-                              className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground"
-                            >
-                              {showPassword ? (
-                                <EyeOff className="w-5 h-5" />
-                              ) : (
-                                <Eye className="w-5 h-5" />
-                              )}
-                            </button>
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                <FormField
+                  control={signUpForm.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Telefone (opcional)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="tel"
+                          placeholder="(11) 99999-9999"
+                          className="h-12"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-                  <Button
-                    type="submit"
-                    className="w-full h-12 text-base font-semibold"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Entrando...
-                      </>
-                    ) : (
-                      'Entrar'
-                    )}
-                  </Button>
-                </form>
-              </Form>
-            </TabsContent>
-
-            <TabsContent value="signup" className="space-y-4">
-              <Form {...signUpForm}>
-                <form onSubmit={signUpForm.handleSubmit(handleSignUp)} className="space-y-4">
-                  <FormField
-                    control={signUpForm.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Nome completo</FormLabel>
-                        <FormControl>
+                <FormField
+                  control={signUpForm.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Senha</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                           <Input
-                            placeholder="Seu nome"
-                            className="h-12"
+                            type={showPassword ? 'text' : 'password'}
+                            placeholder="Mínimo 6 caracteres"
+                            className="h-12 pl-12 pr-12"
                             {...field}
                           />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground"
+                          >
+                            {showPassword ? (
+                              <EyeOff className="w-5 h-5" />
+                            ) : (
+                              <Eye className="w-5 h-5" />
+                            )}
+                          </button>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-                  <FormField
-                    control={signUpForm.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
+                <Button
+                  type="submit"
+                  className="w-full h-12 text-base font-semibold bg-[hsl(222,47%,11%)] dark:bg-[hsl(222,47%,16%)] hover:bg-[hsl(222,47%,15%)] dark:hover:bg-[hsl(222,47%,20%)]"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Criando conta...
+                    </>
+                  ) : (
+                    'Criar conta'
+                  )}
+                </Button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsSignUp(false)}
+                  className="w-full text-center text-sm text-primary font-semibold py-2"
+                >
+                  Já tenho uma conta
+                </button>
+              </form>
+            </Form>
+          ) : (
+            /* Login Form */
+            <Form {...loginForm}>
+              <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4">
+                <FormField
+                  control={loginForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>E-mail</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                           <Input
                             type="email"
                             placeholder="seu@email.com"
-                            className="h-12"
+                            className="h-12 pl-12"
                             {...field}
                           />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-                  <FormField
-                    control={signUpForm.control}
-                    name="phone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Telefone (opcional)</FormLabel>
-                        <FormControl>
+                <FormField
+                  control={loginForm.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Senha</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                           <Input
-                            type="tel"
-                            placeholder="(11) 99999-9999"
-                            className="h-12"
+                            type={showPassword ? 'text' : 'password'}
+                            placeholder="••••••"
+                            className="h-12 pl-12 pr-12"
                             {...field}
                           />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground"
+                          >
+                            {showPassword ? (
+                              <EyeOff className="w-5 h-5" />
+                            ) : (
+                              <Eye className="w-5 h-5" />
+                            )}
+                          </button>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-                  <FormField
-                    control={signUpForm.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Senha</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <Input
-                              type={showPassword ? 'text' : 'password'}
-                              placeholder="Mínimo 6 caracteres"
-                              className="h-12 pr-12"
-                              {...field}
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setShowPassword(!showPassword)}
-                              className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground"
-                            >
-                              {showPassword ? (
-                                <EyeOff className="w-5 h-5" />
-                              ) : (
-                                <Eye className="w-5 h-5" />
-                              )}
-                            </button>
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                <Button
+                  type="submit"
+                  className="w-full h-12 text-base font-semibold bg-[hsl(222,47%,11%)] dark:bg-[hsl(222,47%,16%)] hover:bg-[hsl(222,47%,15%)] dark:hover:bg-[hsl(222,47%,20%)]"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Entrando...
+                    </>
+                  ) : (
+                    'Entrar'
+                  )}
+                </Button>
 
-                  <Button
-                    type="submit"
-                    className="w-full h-12 text-base font-semibold"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Criando conta...
-                      </>
-                    ) : (
-                      'Criar conta'
-                    )}
-                  </Button>
-                </form>
-              </Form>
-            </TabsContent>
-          </Tabs>
+                <button
+                  type="button"
+                  onClick={() => setIsSignUp(true)}
+                  className="w-full text-center text-sm text-primary font-semibold py-2"
+                >
+                  Criar nova conta
+                </button>
+
+                <button
+                  type="button"
+                  className="w-full text-center text-sm text-muted-foreground py-2"
+                >
+                  Esqueci minha senha
+                </button>
+              </form>
+            </Form>
+          )}
+
+          {/* Terms */}
+          <p className="text-xs text-muted-foreground text-center mt-6">
+            Ao entrar, você concorda com nossos Termos de Uso e Política de Privacidade.
+          </p>
         </div>
       </div>
     </div>
