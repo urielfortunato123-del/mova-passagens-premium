@@ -1,14 +1,17 @@
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Calendar, Clock, MapPin, ArrowRight, Star, Car } from 'lucide-react';
+import { Calendar, Clock, MapPin, ArrowRight, Star, Car, Bell, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/layout/Header';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { StatusChip } from '@/components/ui/status-chip';
+import { StatsCard } from '@/components/home/StatsCard';
+import { RecentRides } from '@/components/home/RecentRides';
 import { useAuth } from '@/contexts/AuthContext';
-import { useNextBooking, useActiveRide } from '@/hooks/useBookings';
+import { useNextBooking, useActiveRide, useBookings, useRecentBookings } from '@/hooks/useBookings';
 import { useFavorites } from '@/hooks/useFavorites';
+import { useNotifications } from '@/hooks/useNotifications';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -16,6 +19,9 @@ export default function Home() {
   const { data: nextBooking } = useNextBooking();
   const { data: activeRide } = useActiveRide();
   const { data: favorites = [] } = useFavorites();
+  const { data: recentBookings = [] } = useRecentBookings(3);
+  const { data: allBookings = [] } = useBookings(['completed']);
+  const { isGranted, requestPermission } = useNotifications();
 
   const greeting = () => {
     const hour = new Date().getHours();
@@ -24,17 +30,35 @@ export default function Home() {
     return 'Boa noite';
   };
 
+  // Calculate stats
+  const totalRides = allBookings.length;
+  const totalSpent = allBookings.reduce(
+    (acc, b) => acc + (b.finalValue || b.estimatedValue),
+    0
+  );
+
   return (
     <>
       <Header title="MOVA" />
       <PageContainer>
         <div className="space-y-6 animate-fade-in">
-          {/* Greeting */}
-          <div className="space-y-1">
-            <p className="text-muted-foreground text-sm">{greeting()},</p>
-            <h2 className="text-2xl font-bold">
-              {passengerProfile?.name?.split(' ')[0] || 'Passageiro'}
-            </h2>
+          {/* Greeting + Notification Bell */}
+          <div className="flex items-start justify-between">
+            <div className="space-y-1">
+              <p className="text-muted-foreground text-sm">{greeting()},</p>
+              <h2 className="text-2xl font-bold">
+                {passengerProfile?.name?.split(' ')[0] || 'Passageiro'}
+              </h2>
+            </div>
+            {!isGranted && (
+              <button
+                onClick={requestPermission}
+                className="p-3 rounded-full bg-secondary hover:bg-secondary/80 transition-colors"
+                title="Ativar notificações"
+              >
+                <Bell className="w-5 h-5 text-muted-foreground" />
+              </button>
+            )}
           </div>
 
           {/* Active Ride Banner */}
@@ -45,7 +69,7 @@ export default function Home() {
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center animate-bounce-subtle">
                     <Car className="w-6 h-6 text-primary" />
                   </div>
                   <div>
@@ -64,7 +88,7 @@ export default function Home() {
           <div className="grid grid-cols-2 gap-3">
             <Button
               onClick={() => navigate('/schedule')}
-              className="h-24 flex-col gap-2"
+              className="h-24 flex-col gap-2 hover-scale"
               size="lg"
             >
               <Calendar className="w-6 h-6" />
@@ -73,13 +97,29 @@ export default function Home() {
             <Button
               onClick={() => navigate('/bookings')}
               variant="secondary"
-              className="h-24 flex-col gap-2"
+              className="h-24 flex-col gap-2 hover-scale"
               size="lg"
             >
               <Clock className="w-6 h-6" />
               <span>Meus agendamentos</span>
             </Button>
           </div>
+
+          {/* Stats Cards */}
+          {totalRides > 0 && (
+            <div className="grid grid-cols-2 gap-3">
+              <StatsCard
+                title="Corridas"
+                value={totalRides}
+                icon={Car}
+              />
+              <StatsCard
+                title="Total gasto"
+                value={`R$ ${totalSpent.toFixed(0)}`}
+                icon={TrendingUp}
+              />
+            </div>
+          )}
 
           {/* Next Booking */}
           {nextBooking && !activeRide && (
@@ -89,7 +129,7 @@ export default function Home() {
               </h3>
               <button
                 onClick={() => navigate(`/bookings/${nextBooking.id}`)}
-                className="w-full premium-card p-4 text-left space-y-3"
+                className="w-full premium-card p-4 text-left space-y-3 hover-scale"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-2">
@@ -124,6 +164,9 @@ export default function Home() {
             </div>
           )}
 
+          {/* Recent Rides */}
+          <RecentRides bookings={recentBookings} />
+
           {/* Favorites Quick Access */}
           {favorites.length > 0 && (
             <div className="space-y-3">
@@ -143,7 +186,7 @@ export default function Home() {
                   <button
                     key={fav.id}
                     onClick={() => navigate('/schedule')}
-                    className="flex items-center gap-2 px-4 py-3 rounded-xl bg-secondary hover:bg-secondary/80 transition-colors shrink-0"
+                    className="flex items-center gap-2 px-4 py-3 rounded-xl bg-secondary hover:bg-secondary/80 transition-colors shrink-0 hover-scale"
                   >
                     <Star className="w-4 h-4 text-primary" />
                     <span className="text-sm font-medium">{fav.label}</span>
@@ -154,8 +197,8 @@ export default function Home() {
           )}
 
           {/* Empty state if no bookings */}
-          {!nextBooking && !activeRide && (
-            <div className="text-center py-8 space-y-4">
+          {!nextBooking && !activeRide && recentBookings.length === 0 && (
+            <div className="text-center py-8 space-y-4 animate-scale-in">
               <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto">
                 <MapPin className="w-8 h-8 text-muted-foreground" />
               </div>

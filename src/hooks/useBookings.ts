@@ -59,6 +59,30 @@ export function useBookings(statusFilter?: BookingStatus[]) {
   });
 }
 
+export function useRecentBookings(limit: number = 3) {
+  const { passengerProfile } = useAuth();
+
+  return useQuery({
+    queryKey: ['recentBookings', passengerProfile?.id, limit],
+    queryFn: async () => {
+      if (!passengerProfile?.id) return [];
+
+      const { data, error } = await supabase
+        .from('bookings')
+        .select('*')
+        .eq('passenger_id', passengerProfile.id)
+        .in('status', ['completed', 'cancelled'])
+        .order('pickup_time', { ascending: false })
+        .limit(limit);
+
+      if (error) throw error;
+
+      return (data || []).map(transformBooking);
+    },
+    enabled: !!passengerProfile?.id,
+  });
+}
+
 export function useBooking(id: string) {
   return useQuery({
     queryKey: ['booking', id],
