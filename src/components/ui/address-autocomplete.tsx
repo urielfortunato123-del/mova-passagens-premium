@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { MapPin, Loader2, X, Check } from 'lucide-react';
+import { MapPin, Loader2, X, Check, History } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { useAddressHistory } from '@/hooks/useAddressHistory';
 
 interface NominatimResult {
   place_id: number;
@@ -18,6 +19,13 @@ interface NominatimResult {
   };
 }
 
+interface HistoryItem {
+  id: string;
+  address: string;
+  lat: number | null;
+  lng: number | null;
+}
+
 export interface AddressValue {
   address: string;
   coords?: { lat: number; lng: number };
@@ -28,10 +36,12 @@ interface AddressAutocompleteProps {
   value: string;
   onChange: (value: string, coords?: { lat: number; lng: number }) => void;
   onValidChange?: (isValid: boolean) => void;
+  onAddressSelected?: (address: string, coords?: { lat: number; lng: number }) => void;
   placeholder?: string;
   className?: string;
   disabled?: boolean;
   showValidation?: boolean;
+  saveToHistory?: boolean;
 }
 
 // Rate limiting: max 1 request per second for Nominatim
@@ -99,13 +109,16 @@ export function AddressAutocomplete({
   value,
   onChange,
   onValidChange,
+  onAddressSelected,
   placeholder = 'Digite o endereço',
   className,
   disabled,
   showValidation = true,
+  saveToHistory = true,
 }: AddressAutocompleteProps) {
   const [inputValue, setInputValue] = useState(value);
   const [results, setResults] = useState<NominatimResult[]>([]);
+  const [historyResults, setHistoryResults] = useState<HistoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [isValidSelection, setIsValidSelection] = useState(false);
@@ -114,6 +127,8 @@ export function AddressAutocomplete({
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<NodeJS.Timeout>();
+  
+  const { history, searchHistory, addToHistory } = useAddressHistory();
 
   // Sync external value and check if it matches a selected address
   useEffect(() => {
@@ -140,19 +155,23 @@ export function AddressAutocomplete({
   }, []);
 
   const search = useCallback(async (query: string) => {
+    // First, show history results immediately
+    const historyMatches = searchHistory(query);
+    setHistoryResults(historyMatches);
+    
     if (query.length < 3) {
       setResults([]);
-      setIsOpen(false);
+      setIsOpen(historyMatches.length > 0);
       return;
     }
 
     setIsLoading(true);
     const searchResults = await searchAddresses(query);
     setResults(searchResults);
-    setIsOpen(searchResults.length > 0);
+    setIsOpen(searchResults.length > 0 || historyMatches.length > 0);
     setHighlightedIndex(-1);
     setIsLoading(false);
-  }, []);
+  }, [searchHistory]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
@@ -176,26 +195,58 @@ export function AddressAutocomplete({
 
   const handleSelect = (result: NominatimResult) => {
     const formatted = formatAddress(result);
+    const coords = {
+      lat: parseFloat(result.lat),
+      lng: parseFloat(result.lon),
+    };
+    
     setSelectedAddress(formatted);
     setIsValidSelection(true);
     onValidChange?.(true);
     setInputValue(formatted);
-    onChange(formatted, {
-      lat: parseFloat(result.lat),
-      lng: parseFloat(result.lon),
-    });
+    onChange(formatted, coords);
+    onAddressSelected?.(formatted, coords);
+    
+    // Save to history
+    if (saveToHistory) {
+      addToHistory.mutate({ address: formatted, lat: coords.lat, lng: coords.lng });
+    }
+    
     setIsOpen(false);
     setResults([]);
+    setHistoryResults([]);
+  };
+
+  const handleHistorySelect = (item: HistoryItem) => {
+    const coords = item.lat && item.lng ? { lat: item.lat, lng: item.lng } : undefined;
+    
+    setSelectedAddress(item.address);
+    setIsValidSelection(true);
+    onValidChange?.(true);
+    setInputValue(item.address);
+    onChange(item.address, coords);
+    onAddressSelected?.(item.address, coords);
+    
+    // Update history usage
+    if (saveToHistory) {
+      addToHistory.mutate({ address: item.address, lat: item.lat ?? undefined, lng: item.lng ?? undefined });
+    }
+    
+    setIsOpen(false);
+    setResults([]);
+    setHistoryResults([]);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!isOpen) return;
 
+    const totalItems = historyResults.length + results.length;
+
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault();
         setHighlightedIndex(prev => 
-          prev < results.length - 1 ? prev + 1 : prev
+          prev < totalItems - 1 ? prev + 1 : prev
         );
         break;
       case 'ArrowUp':
@@ -204,8 +255,15 @@ export function AddressAutocomplete({
         break;
       case 'Enter':
         e.preventDefault();
-        if (highlightedIndex >= 0 && results[highlightedIndex]) {
-          handleSelect(results[highlightedIndex]);
+        if (highlightedIndex >= 0) {
+          if (highlightedIndex < historyResults.length) {
+            handleHistorySelect(historyResults[highlightedIndex]);
+          } else {
+            const resultIndex = highlightedIndex - historyResults.length;
+            if (results[resultIndex]) {
+              handleSelect(results[resultIndex]);
+            }
+          }
         }
         break;
       case 'Escape':
@@ -218,11 +276,22 @@ export function AddressAutocomplete({
     setInputValue('');
     onChange('');
     setResults([]);
+    setHistoryResults([]);
     setIsOpen(false);
     setIsValidSelection(false);
     setSelectedAddress(null);
     onValidChange?.(false);
     inputRef.current?.focus();
+  };
+
+  // Show history on focus if empty
+  const handleFocus = () => {
+    if (!inputValue && history.length > 0) {
+      setHistoryResults(history.slice(0, 5));
+      setIsOpen(true);
+    } else if (results.length > 0 || historyResults.length > 0) {
+      setIsOpen(true);
+    }
   };
 
   // Allow setting as valid externally (for favorites)
@@ -250,7 +319,7 @@ export function AddressAutocomplete({
           value={inputValue}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
-          onFocus={() => results.length > 0 && setIsOpen(true)}
+          onFocus={handleFocus}
           placeholder={placeholder}
           disabled={disabled}
           className={cn(
@@ -285,28 +354,66 @@ export function AddressAutocomplete({
         </p>
       )}
 
-      {isOpen && results.length > 0 && (
+      {isOpen && (historyResults.length > 0 || results.length > 0) && (
         <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-lg shadow-lg overflow-hidden animate-scale-in">
           <ul className="py-1 max-h-60 overflow-auto">
-            {results.map((result, index) => (
-              <li key={result.place_id}>
-                <button
-                  type="button"
-                  onClick={() => handleSelect(result)}
-                  className={cn(
-                    'w-full px-3 py-2.5 text-left flex items-start gap-3 transition-colors',
-                    index === highlightedIndex
-                      ? 'bg-accent text-accent-foreground'
-                      : 'hover:bg-muted'
-                  )}
-                >
-                  <MapPin className="w-4 h-4 mt-0.5 text-primary shrink-0" />
-                  <span className="text-sm leading-tight">
-                    {formatAddress(result)}
-                  </span>
-                </button>
-              </li>
-            ))}
+            {/* History results */}
+            {historyResults.length > 0 && (
+              <>
+                <li className="px-3 py-1.5 text-xs text-muted-foreground font-medium">
+                  Recentes
+                </li>
+                {historyResults.map((item, index) => (
+                  <li key={`history-${item.id}`}>
+                    <button
+                      type="button"
+                      onClick={() => handleHistorySelect(item)}
+                      className={cn(
+                        'w-full px-3 py-2.5 text-left flex items-start gap-3 transition-colors',
+                        index === highlightedIndex
+                          ? 'bg-accent text-accent-foreground'
+                          : 'hover:bg-muted'
+                      )}
+                    >
+                      <History className="w-4 h-4 mt-0.5 text-muted-foreground shrink-0" />
+                      <span className="text-sm leading-tight line-clamp-2">
+                        {item.address}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </>
+            )}
+            
+            {/* Nominatim results */}
+            {results.length > 0 && (
+              <>
+                {historyResults.length > 0 && (
+                  <li className="px-3 py-1.5 text-xs text-muted-foreground font-medium border-t border-border mt-1 pt-2">
+                    Sugestões
+                  </li>
+                )}
+                {results.map((result, index) => (
+                  <li key={result.place_id}>
+                    <button
+                      type="button"
+                      onClick={() => handleSelect(result)}
+                      className={cn(
+                        'w-full px-3 py-2.5 text-left flex items-start gap-3 transition-colors',
+                        (index + historyResults.length) === highlightedIndex
+                          ? 'bg-accent text-accent-foreground'
+                          : 'hover:bg-muted'
+                      )}
+                    >
+                      <MapPin className="w-4 h-4 mt-0.5 text-primary shrink-0" />
+                      <span className="text-sm leading-tight">
+                        {formatAddress(result)}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </>
+            )}
           </ul>
         </div>
       )}
