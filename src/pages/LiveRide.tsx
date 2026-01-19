@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { MapPin, Clock, Phone, MessageCircle, Car, Navigation } from 'lucide-react';
+import { MapPin, Clock, Phone, MessageCircle, Car, Navigation, Loader2 } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
@@ -11,12 +11,13 @@ import { WaitTimer } from '@/components/ui/wait-timer';
 import { ChatDrawer } from '@/components/chat/ChatDrawer';
 import { LiveRideMap } from '@/components/map/LiveRideMap';
 import { useActiveRide } from '@/hooks/useBookings';
+import { useMultipleGeocodes } from '@/hooks/useGeocode';
 import { Skeleton } from '@/components/ui/skeleton';
 
-// Mock positions for demo - São Paulo area
-const MOCK_POSITIONS = {
-  pickup: { lat: -23.5505, lng: -46.6333 }, // Centro SP
-  dropoff: { lat: -23.5629, lng: -46.6544 }, // Paulista
+// Fallback positions if geocoding fails - São Paulo area
+const FALLBACK_POSITIONS = {
+  pickup: { lat: -23.5505, lng: -46.6333 },
+  dropoff: { lat: -23.5629, lng: -46.6544 },
 };
 
 export default function LiveRide() {
@@ -27,8 +28,36 @@ export default function LiveRide() {
   // Mock ETA for demo
   const [eta, setEta] = useState(8);
   
-  // Simulate driver position moving towards pickup/dropoff
-  const [driverPosition, setDriverPosition] = useState({ lat: -23.5605, lng: -46.6433 });
+  // Real geocoding from addresses
+  const { results: geocodedPositions, isLoading: isGeocoding } = useMultipleGeocodes({
+    pickup: activeRide?.pickupAddress || '',
+    dropoff: activeRide?.dropoffAddress || '',
+  });
+
+  // Use geocoded positions or fallback
+  const pickupPosition = useMemo(() => 
+    geocodedPositions.pickup || FALLBACK_POSITIONS.pickup,
+    [geocodedPositions.pickup]
+  );
+  
+  const dropoffPosition = useMemo(() => 
+    geocodedPositions.dropoff || FALLBACK_POSITIONS.dropoff,
+    [geocodedPositions.dropoff]
+  );
+
+  // Driver position - starts offset from pickup and moves towards it/dropoff
+  const [driverPosition, setDriverPosition] = useState<{ lat: number; lng: number } | null>(null);
+
+  // Initialize driver position when pickup is geocoded
+  useEffect(() => {
+    if (pickupPosition && !driverPosition) {
+      // Start driver position offset from pickup
+      setDriverPosition({
+        lat: pickupPosition.lat + 0.01, // ~1km offset
+        lng: pickupPosition.lng + 0.008,
+      });
+    }
+  }, [pickupPosition, driverPosition]);
 
   useEffect(() => {
     if (!isLoading && !activeRide) {
@@ -38,34 +67,40 @@ export default function LiveRide() {
 
   // Simulate ETA countdown and driver movement when enroute
   useEffect(() => {
-    if (activeRide?.status === 'enroute' && eta > 0) {
+    if (activeRide?.status === 'enroute' && eta > 0 && pickupPosition) {
       const timer = setInterval(() => {
         setEta((prev) => Math.max(0, prev - 1));
         
         // Move driver towards pickup
-        setDriverPosition((prev) => ({
-          lat: prev.lat + (MOCK_POSITIONS.pickup.lat - prev.lat) * 0.1,
-          lng: prev.lng + (MOCK_POSITIONS.pickup.lng - prev.lng) * 0.1,
-        }));
-      }, 3000); // Update every 3 seconds for demo
+        setDriverPosition((prev) => {
+          if (!prev) return prev;
+          return {
+            lat: prev.lat + (pickupPosition.lat - prev.lat) * 0.1,
+            lng: prev.lng + (pickupPosition.lng - prev.lng) * 0.1,
+          };
+        });
+      }, 3000);
 
       return () => clearInterval(timer);
     }
-  }, [activeRide?.status, eta]);
+  }, [activeRide?.status, eta, pickupPosition]);
 
   // Simulate driver movement during ride
   useEffect(() => {
-    if (activeRide?.status === 'in_progress') {
+    if (activeRide?.status === 'in_progress' && dropoffPosition) {
       const timer = setInterval(() => {
-        setDriverPosition((prev) => ({
-          lat: prev.lat + (MOCK_POSITIONS.dropoff.lat - prev.lat) * 0.05,
-          lng: prev.lng + (MOCK_POSITIONS.dropoff.lng - prev.lng) * 0.05,
-        }));
+        setDriverPosition((prev) => {
+          if (!prev) return prev;
+          return {
+            lat: prev.lat + (dropoffPosition.lat - prev.lat) * 0.05,
+            lng: prev.lng + (dropoffPosition.lng - prev.lng) * 0.05,
+          };
+        });
       }, 2000);
 
       return () => clearInterval(timer);
     }
-  }, [activeRide?.status]);
+  }, [activeRide?.status, dropoffPosition]);
 
   if (isLoading) {
     return (
@@ -109,15 +144,25 @@ export default function LiveRide() {
         <div className="space-y-4 animate-fade-in">
           {/* Real Map with Leaflet */}
           <div className="h-72 relative overflow-hidden">
-            <LiveRideMap
-              driverPosition={driverPosition}
-              pickupPosition={MOCK_POSITIONS.pickup}
-              dropoffPosition={MOCK_POSITIONS.dropoff}
-              status={activeRide.status}
-              driverName={activeRide.driverName}
-              pickupAddress={activeRide.pickupAddress}
-              dropoffAddress={activeRide.dropoffAddress}
-            />
+            {isGeocoding ? (
+              <div className="h-full flex items-center justify-center bg-muted">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+              </div>
+            ) : driverPosition ? (
+              <LiveRideMap
+                driverPosition={driverPosition}
+                pickupPosition={pickupPosition}
+                dropoffPosition={dropoffPosition}
+                status={activeRide.status}
+                driverName={activeRide.driverName}
+                pickupAddress={activeRide.pickupAddress}
+                dropoffAddress={activeRide.dropoffAddress}
+              />
+            ) : (
+              <div className="h-full flex items-center justify-center bg-muted">
+                <p className="text-muted-foreground">Carregando mapa...</p>
+              </div>
+            )}
             
             {/* Status pill overlay */}
             <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000]">
