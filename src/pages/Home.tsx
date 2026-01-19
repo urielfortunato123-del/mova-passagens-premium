@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { StatusChip } from '@/components/ui/status-chip';
 import { StatsCard } from '@/components/home/StatsCard';
 import { RecentRides } from '@/components/home/RecentRides';
+import { ThemeToggleSimple } from '@/components/ui/theme-toggle';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNextBooking, useActiveRide, useBookings, useRecentBookings } from '@/hooks/useBookings';
 import { useFavorites } from '@/hooks/useFavorites';
@@ -39,7 +40,7 @@ export default function Home() {
 
   return (
     <>
-      <Header title="MOVA" />
+      <Header title="MOVA" rightContent={<ThemeToggleSimple />} />
       <PageContainer>
         <div className="space-y-6 animate-fade-in">
           {/* Greeting + Notification Bell */}
