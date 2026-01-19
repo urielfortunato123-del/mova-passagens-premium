@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { MapPin, Loader2, X } from 'lucide-react';
+import { MapPin, Loader2, X, Check } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 
@@ -18,12 +18,20 @@ interface NominatimResult {
   };
 }
 
+export interface AddressValue {
+  address: string;
+  coords?: { lat: number; lng: number };
+  isValid: boolean;
+}
+
 interface AddressAutocompleteProps {
   value: string;
   onChange: (value: string, coords?: { lat: number; lng: number }) => void;
+  onValidChange?: (isValid: boolean) => void;
   placeholder?: string;
   className?: string;
   disabled?: boolean;
+  showValidation?: boolean;
 }
 
 // Rate limiting: max 1 request per second for Nominatim
@@ -90,23 +98,35 @@ function formatAddress(result: NominatimResult): string {
 export function AddressAutocomplete({
   value,
   onChange,
+  onValidChange,
   placeholder = 'Digite o endereço',
   className,
   disabled,
+  showValidation = true,
 }: AddressAutocompleteProps) {
   const [inputValue, setInputValue] = useState(value);
   const [results, setResults] = useState<NominatimResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [isValidSelection, setIsValidSelection] = useState(false);
+  const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<NodeJS.Timeout>();
 
-  // Sync external value
+  // Sync external value and check if it matches a selected address
   useEffect(() => {
     setInputValue(value);
-  }, [value]);
+    // If value was set externally (e.g., from favorites), mark as valid
+    if (value && value === selectedAddress) {
+      setIsValidSelection(true);
+    } else if (value && selectedAddress && value !== selectedAddress) {
+      // Value was modified after selection
+      setIsValidSelection(false);
+      onValidChange?.(false);
+    }
+  }, [value, selectedAddress, onValidChange]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -138,6 +158,12 @@ export function AddressAutocomplete({
     const newValue = e.target.value;
     setInputValue(newValue);
     onChange(newValue);
+    
+    // Mark as invalid when typing (user modified the selected address)
+    if (isValidSelection && newValue !== selectedAddress) {
+      setIsValidSelection(false);
+      onValidChange?.(false);
+    }
 
     // Debounce search
     if (debounceRef.current) {
@@ -149,9 +175,12 @@ export function AddressAutocomplete({
   };
 
   const handleSelect = (result: NominatimResult) => {
-    const formattedAddress = formatAddress(result);
-    setInputValue(formattedAddress);
-    onChange(formattedAddress, {
+    const formatted = formatAddress(result);
+    setSelectedAddress(formatted);
+    setIsValidSelection(true);
+    onValidChange?.(true);
+    setInputValue(formatted);
+    onChange(formatted, {
       lat: parseFloat(result.lat),
       lng: parseFloat(result.lon),
     });
@@ -190,8 +219,28 @@ export function AddressAutocomplete({
     onChange('');
     setResults([]);
     setIsOpen(false);
+    setIsValidSelection(false);
+    setSelectedAddress(null);
+    onValidChange?.(false);
     inputRef.current?.focus();
   };
+
+  // Allow setting as valid externally (for favorites)
+  const markAsValid = useCallback((address: string) => {
+    setSelectedAddress(address);
+    setIsValidSelection(true);
+    onValidChange?.(true);
+  }, [onValidChange]);
+
+  // Expose markAsValid through a ref-like pattern
+  useEffect(() => {
+    if (value && !selectedAddress && value.length > 10) {
+      // If value is set externally with a reasonable address, assume it's valid (e.g., from favorites)
+      setSelectedAddress(value);
+      setIsValidSelection(true);
+      onValidChange?.(true);
+    }
+  }, [value, selectedAddress, onValidChange]);
 
   return (
     <div ref={containerRef} className="relative">
@@ -204,11 +253,19 @@ export function AddressAutocomplete({
           onFocus={() => results.length > 0 && setIsOpen(true)}
           placeholder={placeholder}
           disabled={disabled}
-          className={cn('h-12 pr-10', className)}
+          className={cn(
+            'h-12 pr-16',
+            showValidation && inputValue && !isValidSelection && 'border-destructive focus-visible:ring-destructive',
+            showValidation && isValidSelection && 'border-status-completed focus-visible:ring-status-completed',
+            className
+          )}
         />
         <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
           {isLoading && (
             <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+          )}
+          {showValidation && isValidSelection && !isLoading && (
+            <Check className="w-4 h-4 text-status-completed" />
           )}
           {inputValue && !isLoading && (
             <button
@@ -221,6 +278,12 @@ export function AddressAutocomplete({
           )}
         </div>
       </div>
+      
+      {showValidation && inputValue && !isValidSelection && !isOpen && (
+        <p className="text-xs text-destructive mt-1">
+          Selecione um endereço da lista de sugestões
+        </p>
+      )}
 
       {isOpen && results.length > 0 && (
         <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded-lg shadow-lg overflow-hidden animate-scale-in">

@@ -49,6 +49,8 @@ const minutes = ['00', '15', '30', '45'];
 
 export function ScheduleForm() {
   const [showPreview, setShowPreview] = useState(false);
+  const [pickupValid, setPickupValid] = useState(false);
+  const [dropoffValid, setDropoffValid] = useState(false);
   const { data: favorites = [] } = useFavorites();
   const createBooking = useCreateBooking();
 
@@ -63,10 +65,16 @@ export function ScheduleForm() {
   });
 
   const watchedValues = form.watch();
-  const isFormValid = form.formState.isValid;
+  const isFormValid = form.formState.isValid && pickupValid && dropoffValid;
 
   const handleFavoriteSelect = (address: string, field: 'pickupAddress' | 'dropoffAddress') => {
     form.setValue(field, address, { shouldValidate: true });
+    // Mark as valid when selecting from favorites
+    if (field === 'pickupAddress') {
+      setPickupValid(true);
+    } else {
+      setDropoffValid(true);
+    }
   };
 
   const onSubmit = async (values: FormValues) => {
@@ -107,6 +115,7 @@ export function ScheduleForm() {
                     <AddressAutocomplete
                       value={field.value}
                       onChange={(value) => field.onChange(value)}
+                      onValidChange={setPickupValid}
                       placeholder="Digite o endereço de partida"
                     />
                     {favorites.length > 0 && (
@@ -146,6 +155,7 @@ export function ScheduleForm() {
                     <AddressAutocomplete
                       value={field.value}
                       onChange={(value) => field.onChange(value)}
+                      onValidChange={setDropoffValid}
                       placeholder="Digite o endereço de destino"
                     />
                     {favorites.length > 0 && (
