@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { CalendarIcon, MapPin, Navigation, Star } from 'lucide-react';
+import { CalendarIcon, MapPin, Navigation, Star, Locate, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import {
@@ -30,9 +30,11 @@ import {
 import { cn } from '@/lib/utils';
 import { useCreateBooking } from '@/hooks/useBookings';
 import { useFavorites } from '@/hooks/useFavorites';
+import { useGeolocation } from '@/hooks/useGeolocation';
 import { ScheduleFormData } from '@/types';
 import { PricePreview } from './PricePreview';
 import { AddressAutocomplete } from '@/components/ui/address-autocomplete';
+import { toast } from 'sonner';
 
 const formSchema = z.object({
   pickupAddress: z.string().min(5, 'Endereço muito curto'),
@@ -53,6 +55,7 @@ export function ScheduleForm() {
   const [dropoffValid, setDropoffValid] = useState(false);
   const { data: favorites = [] } = useFavorites();
   const createBooking = useCreateBooking();
+  const { loading: geoLoading, getCurrentLocation } = useGeolocation();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -74,6 +77,17 @@ export function ScheduleForm() {
       setPickupValid(true);
     } else {
       setDropoffValid(true);
+    }
+  };
+
+  const handleUseCurrentLocation = async () => {
+    const result = await getCurrentLocation();
+    if (result) {
+      form.setValue('pickupAddress', result.address, { shouldValidate: true });
+      setPickupValid(true);
+      toast.success('Localização detectada');
+    } else {
+      toast.error('Não foi possível obter sua localização');
     }
   };
 
@@ -118,21 +132,32 @@ export function ScheduleForm() {
                       onValidChange={setPickupValid}
                       placeholder="Digite o endereço de partida"
                     />
-                    {favorites.length > 0 && (
-                      <div className="flex flex-wrap gap-2">
-                        {favorites.slice(0, 3).map((fav) => (
-                          <button
-                            key={fav.id}
-                            type="button"
-                            onClick={() => handleFavoriteSelect(fav.address, 'pickupAddress')}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
-                          >
-                            <Star className="w-3 h-3" />
-                            {fav.label}
-                          </button>
-                        ))}
-                      </div>
-                    )}
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={handleUseCurrentLocation}
+                        disabled={geoLoading}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs bg-primary/10 text-primary hover:bg-primary/20 transition-colors disabled:opacity-50"
+                      >
+                        {geoLoading ? (
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : (
+                          <Locate className="w-3 h-3" />
+                        )}
+                        Usar minha localização
+                      </button>
+                      {favorites.slice(0, 2).map((fav) => (
+                        <button
+                          key={fav.id}
+                          type="button"
+                          onClick={() => handleFavoriteSelect(fav.address, 'pickupAddress')}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
+                        >
+                          <Star className="w-3 h-3" />
+                          {fav.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </FormControl>
                 <FormMessage />
