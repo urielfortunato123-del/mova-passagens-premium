@@ -14,6 +14,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      address_history: {
+        Row: {
+          address: string
+          created_at: string
+          id: string
+          last_used_at: string
+          lat: number | null
+          lng: number | null
+          passenger_id: string
+          used_count: number
+        }
+        Insert: {
+          address: string
+          created_at?: string
+          id?: string
+          last_used_at?: string
+          lat?: number | null
+          lng?: number | null
+          passenger_id: string
+          used_count?: number
+        }
+        Update: {
+          address?: string
+          created_at?: string
+          id?: string
+          last_used_at?: string
+          lat?: number | null
+          lng?: number | null
+          passenger_id?: string
+          used_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "address_history_passenger_id_fkey"
+            columns: ["passenger_id"]
+            isOneToOne: false
+            referencedRelation: "passenger_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_messages: {
         Row: {
           booking_id: string
@@ -247,6 +288,10 @@ export type Database = {
     }
     Functions: {
       get_passenger_id: { Args: never; Returns: string }
+      upsert_address_history: {
+        Args: { p_address: string; p_lat?: number; p_lng?: number }
+        Returns: string
+      }
     }
     Enums: {
       booking_status:
