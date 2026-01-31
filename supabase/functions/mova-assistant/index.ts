@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 const SYSTEM_PROMPT = `Você é o MOVA Assistant, o assistente inteligente do aplicativo MOVA de transporte executivo.
@@ -32,10 +32,10 @@ serve(async (req) => {
 
   try {
     const { messages, context, type = "chat" } = await req.json();
-    const OPENROUTER_API_KEY = Deno.env.get("OPENROUTER_API_KEY");
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
-    if (!OPENROUTER_API_KEY) {
-      throw new Error("OPENROUTER_API_KEY is not configured");
+    if (!LOVABLE_API_KEY) {
+      throw new Error("LOVABLE_API_KEY is not configured");
     }
 
     let systemPrompt = SYSTEM_PROMPT
@@ -59,17 +59,15 @@ Responda APENAS com um JSON válido, sem nenhum texto adicional:
       systemPrompt += `\n\nO usuário está falando por voz. Responda de forma ainda mais concisa e natural, como em uma conversa.`;
     }
 
-    // Use a free model from OpenRouter
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    // Use Lovable AI Gateway
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+        "Authorization": `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
-        "HTTP-Referer": "https://lovable.dev",
-        "X-Title": "MOVA Passenger App",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.0-flash-exp:free", // Free model
+        model: "google/gemini-3-flash-preview",
         messages: [
           { role: "system", content: systemPrompt },
           ...messages,
@@ -80,11 +78,18 @@ Responda APENAS com um JSON válido, sem nenhum texto adicional:
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("OpenRouter error:", response.status, errorText);
+      console.error("Lovable AI error:", response.status, errorText);
       
       if (response.status === 429) {
         return new Response(JSON.stringify({ error: "Limite de requisições atingido. Aguarde um momento." }), {
           status: 429,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      
+      if (response.status === 402) {
+        return new Response(JSON.stringify({ error: "Créditos de IA esgotados. Por favor, adicione créditos." }), {
+          status: 402,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
