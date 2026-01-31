@@ -32,10 +32,10 @@ serve(async (req) => {
 
   try {
     const { messages, context, type = "chat" } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    const OPENROUTER_API_KEY = Deno.env.get("OPENROUTER_API_KEY");
     
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    if (!OPENROUTER_API_KEY) {
+      throw new Error("OPENROUTER_API_KEY is not configured");
     }
 
     let systemPrompt = SYSTEM_PROMPT
@@ -59,15 +59,17 @@ Responda APENAS com um JSON válido, sem nenhum texto adicional:
       systemPrompt += `\n\nO usuário está falando por voz. Responda de forma ainda mais concisa e natural, como em uma conversa.`;
     }
 
-    // Use Lovable AI Gateway
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    // Use OpenRouter API
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+        "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
         "Content-Type": "application/json",
+        "HTTP-Referer": "https://lovable.dev",
+        "X-Title": "MOVA Passenger App",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "google/gemini-2.0-flash-exp:free",
         messages: [
           { role: "system", content: systemPrompt },
           ...messages,
@@ -78,7 +80,7 @@ Responda APENAS com um JSON válido, sem nenhum texto adicional:
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Lovable AI error:", response.status, errorText);
+      console.error("OpenRouter error:", response.status, errorText);
       
       if (response.status === 429) {
         return new Response(JSON.stringify({ error: "Limite de requisições atingido. Aguarde um momento." }), {
@@ -88,7 +90,7 @@ Responda APENAS com um JSON válido, sem nenhum texto adicional:
       }
       
       if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "Créditos de IA esgotados. Por favor, adicione créditos." }), {
+        return new Response(JSON.stringify({ error: "Créditos de IA esgotados." }), {
           status: 402,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
