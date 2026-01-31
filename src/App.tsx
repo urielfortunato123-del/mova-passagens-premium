@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/layout/ProtectedRoute";
+import { AIAssistantFab } from "@/components/ai/AIAssistantFab";
 
 // Public pages
 import Login from "./pages/Login";
@@ -67,6 +68,7 @@ const App = () => (
               {/* Catch-all */}
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <AIAssistantFab />
           </BrowserRouter>
         </TooltipProvider>
       </AuthProvider>
