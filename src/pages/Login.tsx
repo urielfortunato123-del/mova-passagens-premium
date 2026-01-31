@@ -120,7 +120,7 @@ export default function Login() {
         <img 
           src={movaHero} 
           alt="MOVA - Mobilidade que respeita seu tempo" 
-          className="absolute inset-0 w-full h-full object-cover object-[center_30%] animate-fade-in"
+          className="absolute inset-0 w-full h-full object-cover object-[center_20%] animate-fade-in"
         />
         {/* Gradient overlay for smooth transition */}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background" />
