@@ -32,10 +32,10 @@ serve(async (req) => {
 
   try {
     const { messages, context, type = "chat" } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    const OPENROUTER_API_KEY = Deno.env.get("OPENROUTER_API_KEY");
     
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    if (!OPENROUTER_API_KEY) {
+      throw new Error("OPENROUTER_API_KEY is not configured");
     }
 
     let systemPrompt = SYSTEM_PROMPT
@@ -49,102 +49,70 @@ serve(async (req) => {
 Página atual: ${context?.currentPage || "Home"}
 Nível: ${context?.membershipLevel || "Bronze"}
 
-Responda APENAS com um JSON array de 3 sugestões, cada uma com: { "text": "texto curto", "action": "navigate|book|info", "target": "/path ou descrição" }
-Exemplo: [{"text": "Agendar corrida", "action": "navigate", "target": "/schedule"}]`;
+Responda APENAS com um JSON válido, sem nenhum texto adicional:
+[{"text": "texto curto", "action": "navigate", "target": "/path", "icon": "car"}]
+
+Ícones disponíveis: car, gift, phone, credit-card, map, calendar`;
     }
 
     if (type === "voice") {
       systemPrompt += `\n\nO usuário está falando por voz. Responda de forma ainda mais concisa e natural, como em uma conversa.`;
     }
 
-    const body: Record<string, unknown> = {
-      model: "google/gemini-3-flash-preview",
-      messages: [
-        { role: "system", content: systemPrompt },
-        ...messages,
-      ],
-      stream: type === "chat",
-    };
-
-    // Tool calling for suggestions
-    if (type === "suggestions") {
-      body.tools = [
-        {
-          type: "function",
-          function: {
-            name: "get_suggestions",
-            description: "Return 3 quick action suggestions for the user",
-            parameters: {
-              type: "object",
-              properties: {
-                suggestions: {
-                  type: "array",
-                  items: {
-                    type: "object",
-                    properties: {
-                      text: { type: "string", description: "Short action text" },
-                      action: { type: "string", enum: ["navigate", "book", "info"] },
-                      target: { type: "string", description: "Navigation path or description" },
-                      icon: { type: "string", description: "Icon name: car, gift, phone, credit-card, map, calendar" }
-                    },
-                    required: ["text", "action", "target", "icon"],
-                    additionalProperties: false
-                  }
-                }
-              },
-              required: ["suggestions"],
-              additionalProperties: false
-            }
-          }
-        }
-      ];
-      body.tool_choice = { type: "function", function: { name: "get_suggestions" } };
-      body.stream = false;
-    }
-
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    // Use a free model from OpenRouter
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
         "Content-Type": "application/json",
+        "HTTP-Referer": "https://lovable.dev",
+        "X-Title": "MOVA Passenger App",
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify({
+        model: "google/gemini-2.0-flash-exp:free", // Free model
+        messages: [
+          { role: "system", content: systemPrompt },
+          ...messages,
+        ],
+        stream: type === "chat",
+      }),
     });
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error("OpenRouter error:", response.status, errorText);
+      
       if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Muitas requisições. Aguarde um momento." }), {
+        return new Response(JSON.stringify({ error: "Limite de requisições atingido. Aguarde um momento." }), {
           status: 429,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "Créditos insuficientes. Contate o suporte." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
+      
       return new Response(JSON.stringify({ error: "Erro no assistente de IA" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // For suggestions, parse the tool call response
+    // For suggestions, parse the response
     if (type === "suggestions") {
       const data = await response.json();
-      const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
-      if (toolCall?.function?.arguments) {
-        const suggestions = JSON.parse(toolCall.function.arguments);
-        return new Response(JSON.stringify(suggestions), {
+      const content = data.choices?.[0]?.message?.content || "[]";
+      
+      try {
+        // Extract JSON from the response
+        const jsonMatch = content.match(/\[[\s\S]*\]/);
+        const suggestions = jsonMatch ? JSON.parse(jsonMatch[0]) : [];
+        return new Response(JSON.stringify({ suggestions }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      } catch {
+        console.error("Failed to parse suggestions:", content);
+        return new Response(JSON.stringify({ suggestions: [] }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      return new Response(JSON.stringify({ suggestions: [] }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
     }
 
     // For chat, stream the response
