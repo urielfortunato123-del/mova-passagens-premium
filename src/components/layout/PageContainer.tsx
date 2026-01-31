@@ -11,12 +11,12 @@ export function PageContainer({ children, className, noPadding = false }: PageCo
   return (
     <main
       className={cn(
-        'min-h-screen pb-safe',
+        'min-h-screen pb-24', // Fixed padding for bottom nav (96px)
         !noPadding && 'px-4 py-4',
         className
       )}
     >
-      <div className="max-w-lg mx-auto">
+      <div className="max-w-lg mx-auto pb-safe">
         {children}
       </div>
     </main>
