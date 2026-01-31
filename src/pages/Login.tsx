@@ -244,7 +244,7 @@ export default function Login() {
 
                 <Button
                   type="submit"
-                  className="w-full h-12 text-base font-semibold bg-[hsl(222,47%,11%)] dark:bg-[hsl(222,47%,16%)] hover:bg-[hsl(222,47%,15%)] dark:hover:bg-[hsl(222,47%,20%)]"
+                  className="w-full h-12 text-base font-semibold"
                   disabled={isLoading}
                 >
                   {isLoading ? (
@@ -327,7 +327,7 @@ export default function Login() {
 
                 <Button
                   type="submit"
-                  className="w-full h-12 text-base font-semibold bg-[hsl(222,47%,11%)] dark:bg-[hsl(222,47%,16%)] hover:bg-[hsl(222,47%,15%)] dark:hover:bg-[hsl(222,47%,20%)]"
+                  className="w-full h-12 text-base font-semibold"
                   disabled={isLoading}
                 >
                   {isLoading ? (

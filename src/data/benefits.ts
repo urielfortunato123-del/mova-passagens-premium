@@ -34,7 +34,7 @@ export const membershipTiers: MembershipTier[] = [
     icon: '🥇',
     minRides: 50,
     cashbackPercent: 20,
-    color: 'hsl(38, 92%, 50%)',
+    color: 'hsl(45, 90%, 50%)',
     benefits: [
       '+20% cashback',
       'Brindes mensais',
@@ -48,7 +48,7 @@ export const membershipTiers: MembershipTier[] = [
     icon: '💎',
     minRides: 100,
     cashbackPercent: 30,
-    color: 'hsl(200, 80%, 60%)',
+    color: 'hsl(160, 60%, 45%)',
     benefits: [
       '+30% cashback',
       'Experiências VIP',

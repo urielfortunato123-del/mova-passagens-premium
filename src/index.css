@@ -2,120 +2,126 @@
 @tailwind components;
 @tailwind utilities;
 
-/* MOVA – Usuário Design System */
+/* MOVA Design System - Matching Driver App */
 @layer base {
   :root {
-    /* Light theme */
-    --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
+    /* Light Mode - Navy Blue Primary */
+    --background: 220 20% 97%;
+    --foreground: 220 30% 12%;
 
-    --card: 0 0% 98%;
-    --card-foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 30% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 220 30% 12%;
 
-    /* Premium amber/gold accent */
-    --primary: 38 92% 50%;
-    --primary-foreground: 0 0% 100%;
+    /* Primary - Navy Blue */
+    --primary: 220 60% 20%;
+    --primary-foreground: 0 0% 98%;
 
-    --secondary: 220 14% 96%;
-    --secondary-foreground: 222 47% 11%;
+    --secondary: 220 15% 92%;
+    --secondary-foreground: 220 30% 20%;
 
-    --muted: 220 14% 96%;
-    --muted-foreground: 220 9% 46%;
+    --muted: 220 15% 94%;
+    --muted-foreground: 220 10% 45%;
 
-    --accent: 38 80% 45%;
+    /* Accent - Emerald Green */
+    --accent: 160 60% 40%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 0 65% 55%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 38 92% 50%;
+    --border: 220 15% 88%;
+    --input: 220 15% 88%;
+    --ring: 220 60% 20%;
 
     --radius: 0.75rem;
 
     /* Status colors */
     --status-requested: 220 15% 50%;
-    --status-confirmed: 142 70% 45%;
+    --status-confirmed: 160 60% 45%;
     --status-enroute: 199 89% 48%;
     --status-arrived: 262 83% 58%;
-    --status-in-progress: 38 92% 50%;
-    --status-completed: 142 76% 36%;
-    --status-cancelled: 0 72% 51%;
+    --status-in-progress: 45 90% 50%;
+    --status-completed: 160 60% 40%;
+    --status-cancelled: 0 65% 55%;
 
-    /* Driver status colors */
-    --driver-available: 160 60% 45%;
-    --driver-paused: 45 90% 50%;
-    --driver-unavailable: 0 65% 55%;
+    /* Availability status */
+    --available: 160 60% 45%;
+    --available-foreground: 0 0% 100%;
+    --paused: 45 90% 50%;
+    --paused-foreground: 45 90% 15%;
+    --unavailable: 0 65% 55%;
+    --unavailable-foreground: 0 0% 100%;
 
-    /* Waiting time accent */
-    --waiting: 160 60% 40%;
-    --waiting-foreground: 0 0% 100%;
+    /* Success/Warning */
+    --success: 160 60% 40%;
+    --success-foreground: 0 0% 100%;
+    --warning: 45 90% 50%;
+    --warning-foreground: 45 90% 15%;
 
     /* Sidebar */
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 222 47% 11%;
-    --sidebar-primary: 38 92% 50%;
+    --sidebar-background: 220 30% 12%;
+    --sidebar-foreground: 220 10% 90%;
+    --sidebar-primary: 160 60% 45%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 14% 96%;
-    --sidebar-accent-foreground: 222 47% 11%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 38 92% 50%;
+    --sidebar-accent: 220 25% 18%;
+    --sidebar-accent-foreground: 220 10% 90%;
+    --sidebar-border: 220 25% 20%;
+    --sidebar-ring: 160 60% 45%;
 
-    /* Custom gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(38 92% 50%) 0%, hsl(28 95% 55%) 100%);
-    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(220 14% 98%) 100%);
-    --gradient-hero: linear-gradient(135deg, hsl(220 14% 98%) 0%, hsl(0 0% 100%) 100%);
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(220 60% 20%), hsl(220 50% 30%));
+    --gradient-success: linear-gradient(135deg, hsl(160 60% 40%), hsl(160 50% 50%));
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(220 20% 98%));
   }
 
   .dark {
-    /* Dark theme */
-    --background: 222 47% 6%;
-    --foreground: 210 20% 95%;
+    /* Dark Mode - Emerald Green Primary */
+    --background: 220 30% 8%;
+    --foreground: 220 10% 95%;
 
-    --card: 222 47% 8%;
-    --card-foreground: 210 20% 95%;
+    --card: 220 25% 12%;
+    --card-foreground: 220 10% 95%;
 
-    --popover: 222 47% 10%;
-    --popover-foreground: 210 20% 95%;
+    --popover: 220 25% 12%;
+    --popover-foreground: 220 10% 95%;
 
-    /* Premium amber/gold accent */
-    --primary: 38 92% 50%;
-    --primary-foreground: 222 47% 6%;
+    /* Primary - Emerald Green in dark mode */
+    --primary: 160 60% 45%;
+    --primary-foreground: 220 30% 8%;
 
-    --secondary: 222 30% 16%;
-    --secondary-foreground: 210 20% 90%;
+    --secondary: 220 25% 18%;
+    --secondary-foreground: 220 10% 90%;
 
-    --muted: 222 30% 12%;
-    --muted-foreground: 215 20% 55%;
+    --muted: 220 25% 18%;
+    --muted-foreground: 220 10% 55%;
 
-    --accent: 38 80% 45%;
-    --accent-foreground: 222 47% 6%;
+    --accent: 160 60% 45%;
+    --accent-foreground: 220 30% 8%;
 
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 65% 55%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 222 30% 18%;
-    --input: 222 30% 15%;
-    --ring: 38 92% 50%;
+    --border: 220 25% 20%;
+    --input: 220 25% 18%;
+    --ring: 160 60% 45%;
 
     /* Sidebar */
-    --sidebar-background: 222 47% 8%;
-    --sidebar-foreground: 210 20% 90%;
-    --sidebar-primary: 38 92% 50%;
-    --sidebar-primary-foreground: 222 47% 6%;
-    --sidebar-accent: 222 30% 16%;
-    --sidebar-accent-foreground: 210 20% 90%;
-    --sidebar-border: 222 30% 18%;
-    --sidebar-ring: 38 92% 50%;
+    --sidebar-background: 220 30% 10%;
+    --sidebar-foreground: 220 10% 90%;
+    --sidebar-primary: 160 60% 45%;
+    --sidebar-primary-foreground: 220 30% 8%;
+    --sidebar-accent: 220 25% 16%;
+    --sidebar-accent-foreground: 220 10% 90%;
+    --sidebar-border: 220 25% 18%;
+    --sidebar-ring: 160 60% 45%;
 
-    /* Custom gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(38 92% 50%) 0%, hsl(28 95% 55%) 100%);
-    --gradient-card: linear-gradient(180deg, hsl(222 47% 10%) 0%, hsl(222 47% 8%) 100%);
-    --gradient-hero: linear-gradient(135deg, hsl(222 47% 12%) 0%, hsl(222 47% 6%) 100%);
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(160 60% 40%), hsl(160 50% 50%));
+    --gradient-success: linear-gradient(135deg, hsl(160 60% 45%), hsl(160 55% 55%));
+    --gradient-card: linear-gradient(180deg, hsl(220 25% 14%), hsl(220 25% 12%));
   }
 }
 
@@ -129,7 +135,7 @@
   *::before,
   *::after {
     transition-property: background-color, border-color, color, fill, stroke, box-shadow;
-    transition-duration: 0.3s;
+    transition-duration: 0.2s;
     transition-timing-function: ease;
   }
 
@@ -141,6 +147,11 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Display headings with Space Grotesk */
+  h1, h2, h3, h4 {
+    font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
   }
 
   /* Smooth scrolling */
@@ -203,15 +214,56 @@
     @apply bg-[hsl(var(--status-cancelled)/0.15)] text-[hsl(var(--status-cancelled))];
   }
 
-  /* Glass effect */
-  .glass {
-    @apply backdrop-blur-xl bg-card/80 border border-border/50;
+  /* Availability status */
+  .status-available {
+    @apply bg-available text-available-foreground;
   }
 
-  /* Premium card */
+  .status-paused {
+    @apply bg-paused text-paused-foreground;
+  }
+
+  .status-unavailable {
+    @apply bg-unavailable text-unavailable-foreground;
+  }
+
+  /* Glass effect */
+  .glass {
+    @apply backdrop-blur-lg bg-card/80 border border-border/50;
+  }
+
+  /* Premium card - updated for new design */
   .premium-card {
-    @apply rounded-2xl bg-card border border-border/50 shadow-lg;
-    background: var(--gradient-card);
+    @apply rounded-xl bg-card border border-border shadow-card;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+
+  .premium-card:hover {
+    @apply shadow-card-hover;
+  }
+
+  /* Card variants */
+  .card-ride {
+    @apply bg-card rounded-xl border border-border p-4 shadow-card 
+           transition-all duration-200 hover:shadow-card-hover hover:border-primary/20;
+  }
+
+  .card-stat {
+    @apply bg-card rounded-xl border border-border p-5 shadow-card;
+  }
+
+  .earnings-highlight {
+    @apply bg-gradient-to-br from-success/10 to-success/5 border-success/20;
+  }
+
+  /* Navigation items */
+  .nav-item {
+    @apply flex flex-col items-center gap-1 py-2 px-3 
+           text-muted-foreground transition-colors;
+  }
+
+  .nav-item-active {
+    @apply text-primary font-medium;
   }
 
   /* Bottom nav safe area */
@@ -219,7 +271,20 @@
     padding-bottom: calc(5rem + env(safe-area-inset-bottom));
   }
 
-  /* Leaflet map overrides for dark theme */
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 1rem);
+  }
+
+  .safe-top {
+    padding-top: env(safe-area-inset-top, 0);
+  }
+
+  /* Timer active state */
+  .timer-active {
+    @apply animate-pulse-slow;
+  }
+
+  /* Leaflet map overrides */
   .leaflet-container {
     background: hsl(var(--muted));
     font-family: inherit;
@@ -229,7 +294,7 @@
     background: hsl(var(--card));
     color: hsl(var(--foreground));
     border-radius: 12px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
   }
 
   .leaflet-popup-tip {
@@ -251,18 +316,16 @@
   @keyframes fade-in {
     from {
       opacity: 0;
-      transform: translateY(8px);
     }
     to {
       opacity: 1;
-      transform: translateY(0);
     }
   }
 
   @keyframes slide-up {
     from {
       opacity: 0;
-      transform: translateY(20px);
+      transform: translateY(10px);
     }
     to {
       opacity: 1;
@@ -273,9 +336,11 @@
   @keyframes pulse-slow {
     0%, 100% {
       opacity: 1;
+      transform: scale(1);
     }
     50% {
       opacity: 0.6;
+      transform: scale(1.05);
     }
   }
 
@@ -317,25 +382,16 @@
     }
   }
 
-  @keyframes timer-pulse {
-    0%, 100% {
-      box-shadow: 0 0 0 0 hsl(var(--waiting) / 0.4);
-    }
-    50% {
-      box-shadow: 0 0 0 12px hsl(var(--waiting) / 0);
-    }
-  }
-
   .animate-fade-in {
-    animation: fade-in 0.4s ease-out forwards;
+    animation: fade-in 0.3s ease-out forwards;
   }
 
   .animate-slide-up {
-    animation: slide-up 0.5s ease-out forwards;
+    animation: slide-up 0.3s ease-out forwards;
   }
 
   .animate-pulse-slow {
-    animation: pulse-slow 2s ease-in-out infinite;
+    animation: pulse-slow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
 
   .animate-shimmer {
@@ -361,10 +417,6 @@
     animation: bounce-subtle 1.5s ease-in-out infinite;
   }
 
-  .animate-timer-pulse {
-    animation: timer-pulse 2s ease-in-out infinite;
-  }
-
   /* Staggered animation delays */
   .delay-100 { animation-delay: 100ms; }
   .delay-200 { animation-delay: 200ms; }
@@ -383,6 +435,6 @@
 
   /* Hover scale utility */
   .hover-scale {
-    @apply transition-transform duration-200 hover:scale-105;
+    @apply transition-transform duration-200 hover:scale-[1.02];
   }
 }
