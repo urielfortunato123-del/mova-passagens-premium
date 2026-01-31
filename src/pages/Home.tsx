@@ -115,14 +115,14 @@ export default function Home() {
             </div>
 
             {/* Total Gasto */}
-            <div className="premium-card p-4 flex flex-col border-l-4 border-l-primary">
+            <div className="premium-card p-4 flex flex-col border-l-4 border-l-accent">
               <div className="flex items-start justify-between">
                 <span className="text-sm text-muted-foreground">Total Gasto</span>
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <DollarSign className="w-5 h-5 text-primary" />
+                <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
+                  <DollarSign className="w-5 h-5 text-accent" />
                 </div>
               </div>
-              <span className="text-2xl font-bold mt-2 text-primary">
+              <span className="text-2xl font-bold mt-2 text-accent">
                 R$ {totalSpent.toFixed(0)}
               </span>
             </div>
@@ -165,8 +165,7 @@ export default function Home() {
           {/* Main Action Button */}
           <Button
             onClick={() => navigate('/bookings')}
-            variant="secondary"
-            className="w-full h-14 text-base font-semibold bg-[hsl(222,47%,11%)] dark:bg-[hsl(222,47%,16%)] text-white hover:bg-[hsl(222,47%,15%)] dark:hover:bg-[hsl(222,47%,20%)]"
+            className="w-full h-14 text-base font-semibold"
           >
             <Calendar className="w-5 h-5 mr-2" />
             Ver Corridas Agendadas
