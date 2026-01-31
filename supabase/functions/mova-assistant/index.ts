@@ -59,7 +59,7 @@ Responda APENAS com um JSON válido, sem nenhum texto adicional:
       systemPrompt += `\n\nO usuário está falando por voz. Responda de forma ainda mais concisa e natural, como em uma conversa.`;
     }
 
-    // Use OpenRouter API
+    // Use OpenRouter API with meta-llama/llama-3.3-70b-instruct
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -69,11 +69,14 @@ Responda APENAS com um JSON válido, sem nenhum texto adicional:
         "X-Title": "MOVA Passenger App",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.0-flash-exp:free",
+        model: "meta-llama/llama-3.3-70b-instruct",
         messages: [
           { role: "system", content: systemPrompt },
           ...messages,
         ],
+        provider: {
+          sort: "throughput",
+        },
         stream: type === "chat",
       }),
     });
