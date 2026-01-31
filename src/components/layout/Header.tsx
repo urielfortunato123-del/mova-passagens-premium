@@ -1,15 +1,17 @@
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 
 interface HeaderProps {
   title: string;
   showBack?: boolean;
   onBack?: () => void;
   rightContent?: React.ReactNode;
+  showThemeToggle?: boolean;
 }
 
-export function Header({ title, showBack = false, onBack, rightContent }: HeaderProps) {
+export function Header({ title, showBack = false, onBack, rightContent, showThemeToggle = true }: HeaderProps) {
   const navigate = useNavigate();
 
   const handleBack = () => {
@@ -36,7 +38,10 @@ export function Header({ title, showBack = false, onBack, rightContent }: Header
           )}
           <h1 className="text-lg font-semibold">{title}</h1>
         </div>
-        {rightContent && <div>{rightContent}</div>}
+        <div className="flex items-center gap-2">
+          {showThemeToggle && <ThemeToggle />}
+          {rightContent}
+        </div>
       </div>
     </header>
   );
