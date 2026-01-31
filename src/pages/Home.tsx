@@ -1,6 +1,6 @@
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Calendar, Clock, MapPin, ArrowRight, Car, DollarSign, TrendingUp, CheckCircle2 } from 'lucide-react';
+import { Calendar, Clock, MapPin, ArrowRight, Car, DollarSign, TrendingUp, CheckCircle2, Gift, Sparkles, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/layout/Header';
 import { PageContainer } from '@/components/layout/PageContainer';
@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { StatusChip } from '@/components/ui/status-chip';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNextBooking, useActiveRide, useBookings, useRecentBookings } from '@/hooks/useBookings';
+import { membershipTiers } from '@/data/benefits';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -40,6 +41,18 @@ export default function Home() {
 
   const nextBookingTime = nextBooking ? format(new Date(nextBooking.pickupTime), 'HH:mm') : '--:--';
 
+  // Calculate current tier for MOVA+
+  const monthlyRides = completedBookings.filter(b => {
+    const now = new Date();
+    const bookingDate = new Date(b.completedAt || b.pickupTime);
+    return bookingDate.getMonth() === now.getMonth() && 
+           bookingDate.getFullYear() === now.getFullYear();
+  }).length;
+
+  const currentTier = [...membershipTiers]
+    .reverse()
+    .find(tier => monthlyRides >= tier.minRides) || membershipTiers[0];
+
   return (
     <>
       <Header title="MOVA" />
@@ -52,6 +65,30 @@ export default function Home() {
               {passengerProfile?.name?.split(' ')[0] || 'Passageiro'}
             </h2>
           </div>
+
+          {/* MOVA+ Card */}
+          <button
+            onClick={() => navigate('/benefits')}
+            className="w-full premium-card p-4 text-left bg-gradient-to-r from-primary/10 to-primary/5 border-primary/30 hover-scale"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+                  <span className="text-2xl">{currentTier.icon}</span>
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-primary" />
+                    <span className="font-semibold">MOVA+</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Nível {currentTier.name} • +{currentTier.cashbackPercent}% cashback
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="w-5 h-5 text-primary" />
+            </div>
+          </button>
 
           {/* Stats Cards - Grid 2x2 */}
           <div className="grid grid-cols-2 gap-3">
@@ -178,6 +215,46 @@ export default function Home() {
               </button>
             </div>
           )}
+
+          {/* Quick Access - Benefits */}
+          <div className="space-y-3">
+            <h3 className="font-semibold flex items-center gap-2">
+              <Gift className="w-4 h-4 text-primary" />
+              Benefícios Exclusivos
+            </h3>
+            
+            <div className="grid grid-cols-3 gap-3">
+              <button
+                onClick={() => navigate('/partners')}
+                className="premium-card p-3 flex flex-col items-center gap-2 text-center hover-scale"
+              >
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center text-white">
+                  🛍️
+                </div>
+                <span className="text-xs font-medium">Parceiros</span>
+              </button>
+
+              <button
+                onClick={() => navigate('/telephony')}
+                className="premium-card p-3 flex flex-col items-center gap-2 text-center hover-scale"
+              >
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white">
+                  📱
+                </div>
+                <span className="text-xs font-medium">Telefonia</span>
+              </button>
+
+              <button
+                onClick={() => navigate('/bradesco')}
+                className="premium-card p-3 flex flex-col items-center gap-2 text-center hover-scale"
+              >
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center text-white font-bold text-xs">
+                  B
+                </div>
+                <span className="text-xs font-medium">Bradesco</span>
+              </button>
+            </div>
+          </div>
 
           {/* Empty state if no bookings */}
           {!nextBooking && !activeRide && recentBookings.length === 0 && (

@@ -20,6 +20,10 @@ import LiveRide from "./pages/LiveRide";
 import Payments from "./pages/Payments";
 import Profile from "./pages/Profile";
 import Favorites from "./pages/Favorites";
+import Benefits from "./pages/Benefits";
+import Partners from "./pages/Partners";
+import Telephony from "./pages/Telephony";
+import Bradesco from "./pages/Bradesco";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -54,6 +58,10 @@ const App = () => (
                 <Route path="/payments" element={<Payments />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/favorites" element={<Favorites />} />
+                <Route path="/benefits" element={<Benefits />} />
+                <Route path="/partners" element={<Partners />} />
+                <Route path="/telephony" element={<Telephony />} />
+                <Route path="/bradesco" element={<Bradesco />} />
               </Route>
 
               {/* Catch-all */}
