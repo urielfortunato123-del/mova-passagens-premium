@@ -18,6 +18,7 @@ import Schedule from "./pages/Schedule";
 import Bookings from "./pages/Bookings";
 import BookingDetail from "./pages/BookingDetail";
 import LiveRide from "./pages/LiveRide";
+import MapPage from "./pages/Map";
 import Payments from "./pages/Payments";
 import Profile from "./pages/Profile";
 import Favorites from "./pages/Favorites";
@@ -56,6 +57,7 @@ const App = () => (
                 <Route path="/bookings" element={<Bookings />} />
                 <Route path="/bookings/:id" element={<BookingDetail />} />
                 <Route path="/live" element={<LiveRide />} />
+                <Route path="/map" element={<MapPage />} />
                 <Route path="/payments" element={<Payments />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/favorites" element={<Favorites />} />

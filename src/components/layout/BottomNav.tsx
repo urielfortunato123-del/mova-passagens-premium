@@ -6,7 +6,7 @@ import { useCallback } from 'react';
 const navItems = [
   { path: '/home', label: 'Início', icon: Home },
   { path: '/bookings', label: 'Corridas', icon: Calendar },
-  { path: '/live', label: 'Mapa', icon: Map },
+  { path: '/map', label: 'Mapa', icon: Map },
   { path: '/payments', label: 'Pagamentos', icon: CreditCard },
   { path: '/profile', label: 'Perfil', icon: User },
 ];
