@@ -28,10 +28,13 @@ export default function LiveRide() {
   // Mock ETA for demo
   const [eta, setEta] = useState(8);
   
-  // Real geocoding from addresses
+  // Real geocoding from addresses - always call hook with stable values
+  const pickupAddress = activeRide?.pickupAddress || '';
+  const dropoffAddress = activeRide?.dropoffAddress || '';
+  
   const { results: geocodedPositions, isLoading: isGeocoding } = useMultipleGeocodes({
-    pickup: activeRide?.pickupAddress || '',
-    dropoff: activeRide?.dropoffAddress || '',
+    pickup: pickupAddress,
+    dropoff: dropoffAddress,
   });
 
   // Use geocoded positions or fallback
@@ -59,6 +62,7 @@ export default function LiveRide() {
     }
   }, [pickupPosition, driverPosition]);
 
+  // Redirect to home if no active ride (after all hooks are called)
   useEffect(() => {
     if (!isLoading && !activeRide) {
       navigate('/home');
@@ -102,6 +106,7 @@ export default function LiveRide() {
     }
   }, [activeRide?.status, dropoffPosition]);
 
+  // Loading state
   if (isLoading) {
     return (
       <>
@@ -117,8 +122,18 @@ export default function LiveRide() {
     );
   }
 
+  // No active ride - will redirect via useEffect
   if (!activeRide) {
-    return null;
+    return (
+      <>
+        <Header title="Corrida ao vivo" showBack />
+        <PageContainer noPadding>
+          <div className="flex items-center justify-center h-64">
+            <p className="text-muted-foreground">Nenhuma corrida ativa</p>
+          </div>
+        </PageContainer>
+      </>
+    );
   }
 
   const pickupDate = new Date(activeRide.pickupTime);
