@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -81,6 +81,21 @@ function BoundsFitter({ positions }: { positions: Position[] }) {
   return null;
 }
 
+// Leaflet can render a blank map if the container size changes right after mount.
+// This happens often in mobile layouts, animated containers, or when navigating tabs.
+function InvalidateSizeOnMount() {
+  const map = useMap();
+
+  useEffect(() => {
+    const t = window.setTimeout(() => {
+      map.invalidateSize();
+    }, 0);
+    return () => window.clearTimeout(t);
+  }, [map]);
+
+  return null;
+}
+
 export function LiveRideMap({
   driverPosition,
   pickupPosition,
@@ -125,9 +140,10 @@ export function LiveRideMap({
         zoomControl={false}
         attributionControl={false}
       >
+        <InvalidateSizeOnMount />
         <TileLayer
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-          attribution='&copy; <a href="https://carto.com/">CARTO</a>'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         />
         
         <BoundsFitter positions={allPositions} />
@@ -139,7 +155,7 @@ export function LiveRideMap({
               <div className="text-center">
                 <strong>{driverName || 'Motorista'}</strong>
                 <br />
-                <span className="text-xs text-gray-500">
+                <span className="text-xs text-muted-foreground">
                   {status === 'enroute' ? 'A caminho' : status === 'arrived' ? 'Chegou' : 'Em viagem'}
                 </span>
               </div>
@@ -154,7 +170,7 @@ export function LiveRideMap({
               <div className="text-center">
                 <strong>Embarque</strong>
                 <br />
-                <span className="text-xs text-gray-500">{pickupAddress}</span>
+                <span className="text-xs text-muted-foreground">{pickupAddress}</span>
               </div>
             </Popup>
           </Marker>
@@ -167,7 +183,7 @@ export function LiveRideMap({
               <div className="text-center">
                 <strong>Destino</strong>
                 <br />
-                <span className="text-xs text-gray-500">{dropoffAddress}</span>
+                <span className="text-xs text-muted-foreground">{dropoffAddress}</span>
               </div>
             </Popup>
           </Marker>
