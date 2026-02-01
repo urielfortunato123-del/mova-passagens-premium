@@ -1,6 +1,7 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Home, Calendar, Map, CreditCard, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useCallback } from 'react';
 
 const navItems = [
   { path: '/home', label: 'Início', icon: Home },
@@ -10,9 +11,21 @@ const navItems = [
   { path: '/profile', label: 'Perfil', icon: User },
 ];
 
+// Trigger haptic feedback if supported
+const triggerHaptic = (duration: number = 10) => {
+  if ('vibrate' in navigator) {
+    navigator.vibrate(duration);
+  }
+};
+
 export function BottomNav() {
   const location = useLocation();
   const navigate = useNavigate();
+
+  const handleNavClick = useCallback((path: string) => {
+    triggerHaptic(15); // Short vibration for tactile feedback
+    navigate(path);
+  }, [navigate]);
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border shadow-nav">
@@ -25,7 +38,7 @@ export function BottomNav() {
           return (
             <button
               key={item.path}
-              onClick={() => navigate(item.path)}
+              onClick={() => handleNavClick(item.path)}
               className={cn(
                 'nav-item rounded-xl transition-all duration-200 min-w-[64px]',
                 isActive && 'nav-item-active'
