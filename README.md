@@ -1,221 +1,151 @@
-# Mova Cliente 🚗
+# 🚗 MOVA Cliente
 
 **Mobilidade que respeita seu tempo**
 
-O Mova Cliente é um aplicativo PWA premium para passageiros de transporte executivo, oferecendo uma experiência completa de mobilidade com corridas instantâneas e agendadas.
+O MOVA Cliente é um Progressive Web App (PWA) de mobilidade executiva, criado para pessoas que valorizam pontualidade, previsibilidade e experiência — não apenas preço.
+
+> Aqui, mobilidade não é aposta.  
+> É compromisso.
 
 ---
 
-## 📱 Instalação
+## 🌟 Por que a MOVA existe?
 
-O Mova Cliente é um Progressive Web App (PWA) que pode ser instalado diretamente no seu dispositivo:
+Porque chegar no horário não deveria depender de sorte, algoritmo ou cancelamentos.
 
-### iOS (iPhone/iPad)
-1. Abra o app no Safari
-2. Toque no ícone de compartilhar (↑)
-3. Selecione "Adicionar à Tela de Início"
-4. Confirme tocando em "Adicionar"
+A MOVA foi criada para transformar corridas em **compromissos planejados**, respeitando o tempo do usuário e valorizando o motorista.
+
+---
+
+## 📱 Instalação (PWA)
+
+### iOS (iPhone / iPad)
+1. Abra o MOVA no Safari
+2. Toque em **Compartilhar** (↑)
+3. Selecione **Adicionar à Tela de Início**
+4. Confirme
 
 ### Android
-1. Abra o app no Chrome
-2. Toque no menu (⋮)
-3. Selecione "Instalar aplicativo"
-4. Confirme a instalação
+1. Abra o MOVA no Chrome
+2. Toque em **Instalar aplicativo**
+3. Confirme
+
+O MOVA funciona como um app nativo, sem precisar baixar da loja.
 
 ---
 
 ## 🚀 Funcionalidades Principais
 
-### 🚖 Solicitar Corridas
+### 🚖 Corridas Planejadas e Instantâneas
 
-#### Corrida Instantânea (Padrão)
-- Solicite um MOVA imediatamente
-- Selecione origem e destino
-- Visualize o preço estimado antes de confirmar
-- Acompanhe em tempo real
+#### Corrida Instantânea
+- Solicitação rápida
+- Origem e destino claros
+- Preço informado antes da confirmação
+- Acompanhamento em tempo real
 
-#### Corrida Agendada
-- Agende corridas para data e horário específicos
+#### Corrida Agendada (Diferencial MOVA)
+- Agende para data e horário específicos
 - Defina horário de chegada desejado
-- Receba confirmação antecipada
+- Confirmação antecipada
+- Mais previsibilidade, menos ansiedade
 
-### 📍 Endereços
-
-#### Endereços Favoritos
-- Salve locais frequentes (Casa, Trabalho, etc.)
-- Acesso rápido na solicitação de corridas
-- Edite ou remova a qualquer momento
-
-#### Histórico de Endereços
-- Acesso aos endereços usados recentemente
-- Reutilize endereços com um toque
-- Ordenação por uso mais frequente
-
-#### Autocompletar Inteligente
-- Sugestões enquanto digita
-- Integração com serviços de geocodificação
-- Localização atual com um toque
+---
 
 ### 🗺️ Acompanhamento em Tempo Real
 
-#### Mapa Interativo
-- Visualize a localização do motorista
-- Rota em tempo real com polylines
-- ETA (tempo estimado de chegada) dinâmico
+- Localização do motorista no mapa
+- Rota atualizada dinamicamente
+- ETA visível
+- Status claro da corrida em cada etapa
 
-#### Timer de Espera
-- Contagem de tempo quando o motorista chega
-- Cálculo automático de valor de espera
-- Transparência total nos custos
+---
+
+### ⏱️ Timer de Espera Transparente
+
+- Contagem automática quando o motorista chega
+- Tempo de espera visível para ambas as partes
+- Cálculo claro do valor de espera
+- Relação justa e sem conflitos
+
+---
+
+### 👤 Informações do Motorista
+
+- Nome e foto
+- Avaliação média
+- Modelo e placa do veículo
+- Contato direto pelo app
+
+> Mais segurança. Mais confiança.
+
+---
 
 ### 💬 Comunicação
 
-#### Chat com Motorista
-- Mensagens em tempo real
-- Histórico da conversa
-- Notificações de novas mensagens
-
-#### Assistente de Voz MOVA
-- Comandos por voz
-- Sugestões contextuais inteligentes
-- Ajuda rápida para ações comuns
+- Chat disponível após corrida confirmada
+- Histórico de mensagens
+- Notificações em tempo real
 
 ---
 
-## 📋 Gerenciamento de Corridas
+### 💳 Pagamentos Sem Atrito
 
-### Status das Corridas
-- **Solicitada**: Aguardando confirmação
-- **Confirmada**: Motorista designado
-- **A caminho**: Motorista indo até você
-- **Chegou**: Motorista no local de embarque
-- **Em andamento**: Corrida em progresso
-- **Finalizada**: Corrida concluída
-- **Cancelada**: Corrida cancelada
-
-### Timeline Visual
-- Acompanhe cada etapa da corrida
-- Horários registrados automaticamente
-- Histórico completo disponível
-
-### Informações do Motorista
-- Nome e foto
-- Placa e modelo do veículo
-- Telefone para contato direto
+- Cartões de crédito e débito salvos
+- Troca de método antes ou durante a corrida
+- Recibos automáticos
+- Detalhamento completo do valor final
 
 ---
 
-## 💳 Pagamentos
+### ⭐ Pós-Corrida Inteligente
 
-### Métodos de Pagamento
-- Cartões de crédito/débito salvos
-- Adicione novos cartões facilmente
-- Defina método padrão
+- Avaliação rápida
+- Acesso ao recibo
+- Histórico completo de viagens
+- Suporte por corrida específica
 
-### Transparência de Preços
-- Estimativa antes de confirmar
-- Detalhamento do valor final
-- Tempo de espera calculado separadamente
+---
+
+### 📍 Endereços
+
+- Favoritos (Casa, Trabalho, etc.)
+- Histórico de endereços recentes
+- Autocompletar inteligente
+- Localização atual com um toque
+
+---
+
+### 📋 Status da Corrida
+
+| Status | Descrição |
+|--------|-----------|
+| Solicitada | Aguardando confirmação |
+| Confirmada | Motorista designado |
+| A caminho | Motorista indo até você |
+| Chegou | Motorista no local de embarque |
+| Em andamento | Corrida em progresso |
+| Finalizada | Corrida concluída |
+| Cancelada | Corrida cancelada |
+
+> Cada etapa é registrada com horário.
 
 ---
 
 ## 🎁 Programa MOVA+
 
-### Níveis de Fidelidade
+Sistema de fidelidade progressivo que recompensa quem usa a MOVA com frequência.
 
-| Nível | Corridas | Cashback | Benefícios |
-|-------|----------|----------|------------|
-| 🥉 Bronze | 0+ | 5% | Descontos básicos, suporte via chat |
-| 🥈 Prata | 20+ | 10% | Ofertas exclusivas, prioridade no atendimento, 3x sem juros |
-| 🥇 Ouro | 50+ | 20% | Brindes mensais, motoristas premium, cancelamento flexível |
-| 💎 Diamante | 100+ | 30% | Experiências VIP, gerente dedicado, upgrades gratuitos |
+### Níveis
 
-### Acompanhamento de Progresso
-- Visualize seu nível atual
-- Veja quantas corridas faltam para o próximo nível
-- Histórico de cashback acumulado
+| Nível | Descrição |
+|-------|-----------|
+| 🥉 Bronze | Benefícios iniciais |
+| 🥈 Prata | Prioridade e vantagens exclusivas |
+| 🥇 Ouro | Experiência premium |
+| 💎 Diamante | Atendimento e benefícios diferenciados |
 
----
-
-## 🏪 Parceiros e Benefícios
-
-### Categorias de Parceiros
-
-#### 👗 Moda e Vestuário
-- Renner: 15% off em compras acima de R$ 150
-- C&A: 10% off + frete grátis
-- Riachuelo: Cupom R$ 30 na primeira compra
-- Marisa: 20% off em seleção especial
-
-#### 🏪 Conveniências e Mercados
-- AM/PM: Cashback de 5%
-- Oxxo: Combo especial MOVA
-- Pão de Açúcar: 10% off no app
-- Carrefour Express: Descontos em produtos selecionados
-
-#### 🏬 Shopping e Entretenimento
-- Cinemark: Ingresso por R$ 19,90 (seg a qua)
-- iFood: R$ 15 off no primeiro pedido
-- Magalu: 5% cashback
-- Americanas: Frete grátis
-
-#### ☕ Alimentação
-- Starbucks: Bebida média pelo preço da pequena
-- McDonald's: McOferta especial MOVA
-- Burger King: Casquinha grátis em combos
-- Subway: Cookie grátis em sanduíches 30cm
-
-#### 💊 Saúde e Bem-estar
-- Droga Raia: 15% off em medicamentos
-- Drogasil: Cashback de 3%
-- Smart Fit: Primeira mensalidade grátis
-- Sesc: Desconto em atividades culturais
-
----
-
-## 📱 Parcerias de Telefonia
-
-### Operadoras Parceiras
-
-| Operadora | Dados Extras | Desconto | Benefícios |
-|-----------|--------------|----------|------------|
-| TIM | 5GB/mês | 30% | Ligações ilimitadas TIM-TIM |
-| Claro | 3GB/mês | 20% | WhatsApp ilimitado |
-| Vivo | 4GB/mês | 25% | Vivo Play incluso |
-
----
-
-## 🏦 Parceria Bradesco
-
-### Programa KM Bradesco
-- **0,5 KM** para cada R$ 1 gasto em corridas
-- Parcelamento em até **3x sem juros**
-- Seguro viagem **gratuito** em todas as corridas
-
-### Opções de Resgate
-- Desconto em corridas (1.000 KMs)
-- Cashback na conta (2.000 KMs)
-- Gift Cards parceiros (3.000 KMs)
-- Milhas aéreas Smiles (5.000 KMs)
-
-### Conta Bradesco
-- Isenção de tarifa (conta digital)
-- PIX Premiado (pontos a cada PIX)
-- Rendimento acima da poupança
-
----
-
-## 👤 Perfil do Usuário
-
-### Informações Pessoais
-- Nome e foto
-- E-mail e telefone
-- Cidade
-
-### Configurações
-- Tema claro/escuro
-- Notificações
-- Preferências de corrida
+> Percentuais e benefícios podem variar conforme campanhas e região.
 
 ---
 
@@ -223,47 +153,67 @@ O Mova Cliente é um Progressive Web App (PWA) que pode ser instalado diretament
 
 - Autenticação segura
 - Dados criptografados
-- Histórico de corridas protegido
 - Compartilhamento de corrida em tempo real
+- Histórico protegido
+
+> Segurança não é detalhe. É base.
 
 ---
 
 ## 📊 Dashboard (Home)
 
-### Estatísticas
-- Total de corridas realizadas
-- Valor total gasto
-- Tempo total em corridas
-
-### Acesso Rápido
+- Corrida em andamento (quando houver)
 - Corridas recentes
 - Endereços favoritos
-- Corrida em andamento (se houver)
+- Estatísticas básicas de uso
+
+> Tudo no lugar certo, sem poluição visual.
+
+---
+
+## 👤 Perfil do Usuário
+
+- Dados pessoais
+- Preferências de corrida
+- Tema claro / escuro
+- Configurações de notificações
 
 ---
 
 ## 🛠️ Tecnologias
 
-- **Frontend**: React 18, TypeScript, Tailwind CSS
-- **UI Components**: shadcn/ui
-- **Maps**: Leaflet + OpenStreetMap
-- **Backend**: Supabase (Auth, Database, Edge Functions)
-- **PWA**: Instalável em qualquer dispositivo
+| Camada | Tecnologia |
+|--------|------------|
+| Frontend | React 18 + TypeScript |
+| UI | Tailwind CSS + shadcn/ui |
+| Maps | Leaflet + OpenStreetMap |
+| Backend | Supabase (Auth, Database, Edge Functions) |
+| Plataforma | Progressive Web App (PWA) |
+
+---
+
+## 🚗 MOVA não é Uber
+
+A MOVA **não foi criada para ser a corrida mais barata.**
+
+Foi criada para quem valoriza:
+
+- ✅ Horários respeitados
+- ✅ Previsibilidade real
+- ✅ Transparência de custos
+- ✅ Experiência humana
+
+> **Mobilidade que respeita seu tempo.**
 
 ---
 
 ## 📞 Suporte
 
-Para dúvidas ou problemas, utilize:
-- Chat no app com assistente MOVA
-- Sugestões contextuais inteligentes
+- Chat no aplicativo
+- Assistente MOVA para ajuda rápida
 
 ---
 
 ## 📝 Licença
 
-© 2024 MOVA - Todos os direitos reservados.
-
----
-
-**Mova Cliente** - Mobilidade executiva ao seu alcance. 🚗✨
+© MOVA — Todos os direitos reservados.
