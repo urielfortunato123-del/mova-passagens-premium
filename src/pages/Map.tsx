@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Tooltip, useMap } from 'react-leaflet';
 import L from 'leaflet';
@@ -89,16 +89,28 @@ function CenterOnPosition({ position }: { position: { lat: number; lng: number }
   return null;
 }
 
-// Generate mock nearby drivers around a position
-function generateNearbyDrivers(center: { lat: number; lng: number }) {
-  const drivers = [
+// Driver type
+interface Driver {
+  id: number;
+  name: string;
+  vehicle: string;
+  plate: string;
+  eta: number;
+  position: { lat: number; lng: number };
+  direction: number; // angle in radians for movement direction
+  speed: number; // movement speed multiplier
+}
+
+// Generate initial mock nearby drivers around a position
+function generateInitialDrivers(center: { lat: number; lng: number }): Driver[] {
+  const driversData = [
     { id: 1, name: 'Carlos Silva', vehicle: 'Toyota Corolla', plate: 'ABC-1234', eta: 3 },
     { id: 2, name: 'Ana Santos', vehicle: 'Honda Civic', plate: 'DEF-5678', eta: 5 },
     { id: 3, name: 'Roberto Lima', vehicle: 'Volkswagen Jetta', plate: 'GHI-9012', eta: 7 },
     { id: 4, name: 'Maria Oliveira', vehicle: 'Chevrolet Cruze', plate: 'JKL-3456', eta: 4 },
   ];
 
-  return drivers.map((driver, index) => {
+  return driversData.map((driver, index) => {
     // Generate random offset (roughly 500m-2km from center)
     const angle = (index * 90 + Math.random() * 45) * (Math.PI / 180);
     const distance = 0.005 + Math.random() * 0.015; // ~500m to 2km
@@ -109,6 +121,8 @@ function generateNearbyDrivers(center: { lat: number; lng: number }) {
         lat: center.lat + distance * Math.cos(angle),
         lng: center.lng + distance * Math.sin(angle),
       },
+      direction: Math.random() * Math.PI * 2, // Random initial direction
+      speed: 0.3 + Math.random() * 0.7, // Random speed factor
     };
   });
 }
@@ -148,11 +162,64 @@ export default function Map() {
     }
   };
 
-  // Generate nearby drivers based on user position or default
-  const nearbyDrivers = useMemo(() => {
+  // Nearby drivers state with animation
+  const [nearbyDrivers, setNearbyDrivers] = useState<Driver[]>([]);
+  const centerRef = useRef(userPosition || DEFAULT_POSITION);
+
+  // Initialize drivers when center changes
+  useEffect(() => {
     const center = userPosition || DEFAULT_POSITION;
-    return generateNearbyDrivers(center);
+    centerRef.current = center;
+    setNearbyDrivers(generateInitialDrivers(center));
   }, [userPosition]);
+
+  // Animate driver movement
+  useEffect(() => {
+    const moveDrivers = () => {
+      setNearbyDrivers(prevDrivers => 
+        prevDrivers.map(driver => {
+          // Small random movement
+          const moveDistance = 0.00008 * driver.speed; // ~8 meters per tick
+          
+          // Occasionally change direction slightly
+          let newDirection = driver.direction;
+          if (Math.random() < 0.1) {
+            newDirection += (Math.random() - 0.5) * Math.PI / 2;
+          }
+
+          // Calculate new position
+          let newLat = driver.position.lat + moveDistance * Math.cos(newDirection);
+          let newLng = driver.position.lng + moveDistance * Math.sin(newDirection);
+
+          // Keep drivers within ~3km of center, bounce back if too far
+          const center = centerRef.current;
+          const distFromCenter = Math.sqrt(
+            Math.pow(newLat - center.lat, 2) + 
+            Math.pow(newLng - center.lng, 2)
+          );
+
+          if (distFromCenter > 0.025) {
+            // Reverse direction towards center
+            newDirection = Math.atan2(center.lng - newLng, center.lat - newLat);
+          }
+
+          // Update ETA based on distance (simplified)
+          const etaMin = Math.max(1, Math.round(distFromCenter * 400));
+
+          return {
+            ...driver,
+            position: { lat: newLat, lng: newLng },
+            direction: newDirection,
+            eta: Math.min(etaMin, 15),
+          };
+        })
+      );
+    };
+
+    const intervalId = setInterval(moveDrivers, 2000); // Update every 2 seconds
+
+    return () => clearInterval(intervalId);
+  }, []);
 
   return (
     <>
