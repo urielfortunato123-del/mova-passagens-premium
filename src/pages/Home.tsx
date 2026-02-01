@@ -1,6 +1,6 @@
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Calendar, Clock, MapPin, ArrowRight, Car, DollarSign, TrendingUp, CheckCircle2, Gift, Sparkles, ChevronRight } from 'lucide-react';
+import { Calendar, Clock, MapPin, ArrowRight, Car, DollarSign, TrendingUp, CheckCircle2, Gift, Sparkles, ChevronRight, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/layout/Header';
 import { PageContainer } from '@/components/layout/PageContainer';
@@ -164,11 +164,11 @@ export default function Home() {
 
           {/* Main Action Button */}
           <Button
-            onClick={() => navigate('/bookings')}
+            onClick={() => navigate('/schedule')}
             className="w-full h-14 text-base font-semibold"
           >
-            <Calendar className="w-5 h-5 mr-2" />
-            Ver Corridas Agendadas
+            <Zap className="w-5 h-5 mr-2" />
+            Pedir MOVA
           </Button>
 
           {/* Next Booking */}
@@ -262,13 +262,14 @@ export default function Home() {
                 <MapPin className="w-8 h-8 text-muted-foreground" />
               </div>
               <div>
-                <p className="font-medium">Nenhuma corrida agendada</p>
+                <p className="font-medium">Nenhuma corrida ainda</p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Agende sua primeira corrida e viaje com conforto
+                  Peça sua primeira corrida e viaje com conforto
                 </p>
               </div>
               <Button onClick={() => navigate('/schedule')}>
-                Agendar agora
+                <Zap className="w-4 h-4 mr-2" />
+                Pedir agora
               </Button>
             </div>
           )}

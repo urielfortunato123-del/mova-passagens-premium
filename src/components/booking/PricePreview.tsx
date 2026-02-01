@@ -19,6 +19,7 @@ interface PricePreviewProps {
   pickupTime?: Date;
   onConfirm: () => void;
   isLoading?: boolean;
+  isInstant?: boolean;
 }
 
 // Mock price estimation
@@ -36,6 +37,7 @@ export function PricePreview({
   pickupTime,
   onConfirm,
   isLoading,
+  isInstant = false,
 }: PricePreviewProps) {
   const estimatedPrice = estimatePrice();
 
@@ -43,7 +45,7 @@ export function PricePreview({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-sm mx-4">
         <DialogHeader>
-          <DialogTitle>Confirmar agendamento</DialogTitle>
+          <DialogTitle>{isInstant ? 'Confirmar corrida' : 'Confirmar agendamento'}</DialogTitle>
           <DialogDescription>
             Revise os detalhes da sua corrida
           </DialogDescription>
@@ -73,12 +75,23 @@ export function PricePreview({
             <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary">
               <Clock className="w-5 h-5 text-muted-foreground" />
               <div>
-                <p className="text-sm font-medium">
-                  {format(pickupTime, "EEEE, dd 'de' MMMM", { locale: ptBR })}
-                </p>
-                <p className="text-lg font-bold text-primary">
-                  {format(pickupTime, 'HH:mm')}
-                </p>
+                {isInstant ? (
+                  <>
+                    <p className="text-sm font-medium text-primary">Agora</p>
+                    <p className="text-xs text-muted-foreground">
+                      Motorista a caminho em instantes
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm font-medium">
+                      {format(pickupTime, "EEEE, dd 'de' MMMM", { locale: ptBR })}
+                    </p>
+                    <p className="text-lg font-bold text-primary">
+                      {format(pickupTime, 'HH:mm')}
+                    </p>
+                  </>
+                )}
               </div>
             </div>
           )}
@@ -111,10 +124,10 @@ export function PricePreview({
             {isLoading ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Agendando...
+                {isInstant ? 'Solicitando...' : 'Agendando...'}
               </>
             ) : (
-              'Confirmar agendamento'
+              isInstant ? 'Pedir MOVA agora' : 'Confirmar agendamento'
             )}
           </Button>
           <Button
