@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Tooltip, useMap } from 'react-leaflet';
 import L from 'leaflet';
@@ -39,6 +39,29 @@ const userLocationIcon = L.divIcon({
   iconAnchor: [10, 10],
 });
 
+// Custom driver icon
+const driverIcon = L.divIcon({
+  className: 'custom-marker',
+  html: `
+    <div style="
+      background: hsl(142 76% 36%);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      border: 3px solid white;
+    ">
+      🚗
+    </div>
+  `,
+  iconSize: [36, 36],
+  iconAnchor: [18, 18],
+});
+
 // Invalidate map size on mount to fix blank map issue
 function InvalidateSizeOnMount() {
   const map = useMap();
@@ -64,6 +87,30 @@ function CenterOnPosition({ position }: { position: { lat: number; lng: number }
   }, [position, map]);
 
   return null;
+}
+
+// Generate mock nearby drivers around a position
+function generateNearbyDrivers(center: { lat: number; lng: number }) {
+  const drivers = [
+    { id: 1, name: 'Carlos Silva', vehicle: 'Toyota Corolla', plate: 'ABC-1234', eta: 3 },
+    { id: 2, name: 'Ana Santos', vehicle: 'Honda Civic', plate: 'DEF-5678', eta: 5 },
+    { id: 3, name: 'Roberto Lima', vehicle: 'Volkswagen Jetta', plate: 'GHI-9012', eta: 7 },
+    { id: 4, name: 'Maria Oliveira', vehicle: 'Chevrolet Cruze', plate: 'JKL-3456', eta: 4 },
+  ];
+
+  return drivers.map((driver, index) => {
+    // Generate random offset (roughly 500m-2km from center)
+    const angle = (index * 90 + Math.random() * 45) * (Math.PI / 180);
+    const distance = 0.005 + Math.random() * 0.015; // ~500m to 2km
+    
+    return {
+      ...driver,
+      position: {
+        lat: center.lat + distance * Math.cos(angle),
+        lng: center.lng + distance * Math.sin(angle),
+      },
+    };
+  });
 }
 
 // Default position (São Paulo)
@@ -101,6 +148,12 @@ export default function Map() {
     }
   };
 
+  // Generate nearby drivers based on user position or default
+  const nearbyDrivers = useMemo(() => {
+    const center = userPosition || DEFAULT_POSITION;
+    return generateNearbyDrivers(center);
+  }, [userPosition]);
+
   return (
     <>
       <Header title="Mapa" />
@@ -122,6 +175,27 @@ export default function Map() {
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             />
+
+            {/* Nearby driver markers */}
+            {nearbyDrivers.map((driver) => (
+              <Marker 
+                key={driver.id} 
+                position={[driver.position.lat, driver.position.lng]} 
+                icon={driverIcon}
+              >
+                <Tooltip direction="top" offset={[0, -18]}>
+                  <div className="text-center">
+                    <strong>{driver.name}</strong>
+                    <br />
+                    <span className="text-xs">{driver.vehicle}</span>
+                    <br />
+                    <span className="text-xs text-green-600 font-semibold">
+                      {driver.eta} min
+                    </span>
+                  </div>
+                </Tooltip>
+              </Marker>
+            ))}
 
             {/* User location marker */}
             {userPosition && (
