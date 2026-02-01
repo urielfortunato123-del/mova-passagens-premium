@@ -39,7 +39,7 @@ const userLocationIcon = L.divIcon({
   iconAnchor: [10, 10],
 });
 
-// Custom driver icon
+// Custom driver icon (normal - green)
 const driverIcon = L.divIcon({
   className: 'custom-marker',
   html: `
@@ -60,6 +60,37 @@ const driverIcon = L.divIcon({
   `,
   iconSize: [36, 36],
   iconAnchor: [18, 18],
+});
+
+// Custom driver icon (nearby < 3 min - gold with pulse animation)
+const driverNearbyIcon = L.divIcon({
+  className: 'custom-marker',
+  html: `
+    <div style="
+      background: linear-gradient(135deg, hsl(38 92% 50%), hsl(45 93% 47%));
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 0 0 4px hsla(38, 92%, 50%, 0.3), 0 4px 16px rgba(0,0,0,0.4);
+      border: 3px solid white;
+      animation: pulse-ring 1.5s ease-out infinite;
+    ">
+      🚗
+    </div>
+    <style>
+      @keyframes pulse-ring {
+        0% { box-shadow: 0 0 0 4px hsla(38, 92%, 50%, 0.4), 0 4px 16px rgba(0,0,0,0.4); }
+        50% { box-shadow: 0 0 0 8px hsla(38, 92%, 50%, 0.2), 0 4px 16px rgba(0,0,0,0.4); }
+        100% { box-shadow: 0 0 0 4px hsla(38, 92%, 50%, 0.4), 0 4px 16px rgba(0,0,0,0.4); }
+      }
+    </style>
+  `,
+  iconSize: [40, 40],
+  iconAnchor: [20, 20],
 });
 
 // Invalidate map size on mount to fix blank map issue
@@ -254,15 +285,21 @@ export default function Map() {
               <Marker 
                 key={driver.id} 
                 position={[driver.position.lat, driver.position.lng]} 
-                icon={driverIcon}
+                icon={driver.eta < 3 ? driverNearbyIcon : driverIcon}
               >
-                <Tooltip direction="top" offset={[0, -18]}>
+                <Tooltip direction="top" offset={[0, driver.eta < 3 ? -20 : -18]}>
                   <div className="text-center">
                     <strong>{driver.name}</strong>
+                    {driver.eta < 3 && (
+                      <>
+                        <br />
+                        <span className="text-xs font-bold text-amber-500">⚡ Muito próximo!</span>
+                      </>
+                    )}
                     <br />
                     <span className="text-xs">{driver.vehicle}</span>
                     <br />
-                    <span className="text-xs text-green-600 font-semibold">
+                    <span className={`text-xs font-semibold ${driver.eta < 3 ? 'text-amber-500' : 'text-green-600'}`}>
                       {driver.eta} min
                     </span>
                   </div>
