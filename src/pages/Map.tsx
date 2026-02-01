@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Tooltip, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { MapPin, Navigation, Loader2, Car } from 'lucide-react';
+import { MapPin, Navigation, Loader2, Car, Users } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
@@ -273,6 +273,23 @@ export default function Map() {
               </Marker>
             )}
           </MapContainer>
+
+          {/* Driver count badge */}
+          <div className="absolute top-4 left-4 z-[1000]">
+            {!activeRide && (
+              <div className="bg-card/95 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg border border-border flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
+                  <Users className="w-4 h-4 text-green-500" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">
+                    {nearbyDrivers.length} motoristas
+                  </p>
+                  <p className="text-xs text-muted-foreground">disponíveis na região</p>
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Floating Controls */}
           <div className="absolute bottom-24 right-4 z-[1000] flex flex-col gap-2">
