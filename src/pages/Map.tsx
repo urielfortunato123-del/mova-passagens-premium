@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Tooltip, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { MapPin, Navigation, Loader2, Car, Users } from 'lucide-react';
+import { MapPin, Navigation, Loader2, Car, Users, Clock, Filter } from 'lucide-react';
 import { Header } from '@/components/layout/Header';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
@@ -164,7 +164,13 @@ export default function Map() {
 
   // Nearby drivers state with animation
   const [nearbyDrivers, setNearbyDrivers] = useState<Driver[]>([]);
+  const [filterNearby, setFilterNearby] = useState(false);
   const centerRef = useRef(userPosition || DEFAULT_POSITION);
+
+  // Filter drivers based on ETA
+  const displayedDrivers = filterNearby 
+    ? nearbyDrivers.filter(d => d.eta < 5) 
+    : nearbyDrivers;
 
   // Initialize drivers when center changes
   useEffect(() => {
@@ -244,7 +250,7 @@ export default function Map() {
             />
 
             {/* Nearby driver markers */}
-            {nearbyDrivers.map((driver) => (
+            {displayedDrivers.map((driver) => (
               <Marker 
                 key={driver.id} 
                 position={[driver.position.lat, driver.position.lng]} 
@@ -274,20 +280,46 @@ export default function Map() {
             )}
           </MapContainer>
 
-          {/* Driver count badge */}
-          <div className="absolute top-4 left-4 z-[1000]">
+          {/* Driver count badge with filter */}
+          <div className="absolute top-4 left-4 z-[1000] flex flex-col gap-2">
             {!activeRide && (
-              <div className="bg-card/95 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg border border-border flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
-                  <Users className="w-4 h-4 text-green-500" />
+              <>
+                <div className="bg-card/95 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg border border-border flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
+                    <Users className="w-4 h-4 text-green-500" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">
+                      {displayedDrivers.length} motoristas
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {filterNearby ? 'a menos de 5 min' : 'disponíveis na região'}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-semibold text-foreground">
-                    {nearbyDrivers.length} motoristas
-                  </p>
-                  <p className="text-xs text-muted-foreground">disponíveis na região</p>
-                </div>
-              </div>
+                
+                {/* Filter toggle button */}
+                <button
+                  onClick={() => setFilterNearby(!filterNearby)}
+                  className={`
+                    bg-card/95 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg border 
+                    flex items-center gap-2 transition-all duration-200
+                    ${filterNearby 
+                      ? 'border-primary bg-primary/10' 
+                      : 'border-border hover:border-primary/50'
+                    }
+                  `}
+                >
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                    filterNearby ? 'bg-primary/20' : 'bg-muted'
+                  }`}>
+                    <Clock className={`w-3.5 h-3.5 ${filterNearby ? 'text-primary' : 'text-muted-foreground'}`} />
+                  </div>
+                  <span className={`text-sm font-medium ${filterNearby ? 'text-primary' : 'text-muted-foreground'}`}>
+                    {filterNearby ? 'Próximos (< 5 min)' : 'Filtrar próximos'}
+                  </span>
+                </button>
+              </>
             )}
           </div>
 
