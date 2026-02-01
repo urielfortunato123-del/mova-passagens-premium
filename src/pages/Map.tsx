@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { MapPin, Navigation, Loader2, Car } from 'lucide-react';
@@ -125,13 +125,7 @@ export default function Map() {
 
             {/* User location marker */}
             {userPosition && (
-              <Marker position={[userPosition.lat, userPosition.lng]} icon={userLocationIcon}>
-                <Popup>
-                  <div className="text-center">
-                    <strong>Sua localização</strong>
-                  </div>
-                </Popup>
-              </Marker>
+              <Marker position={[userPosition.lat, userPosition.lng]} icon={userLocationIcon} />
             )}
           </MapContainer>
 
