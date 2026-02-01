@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Tooltip, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { MapPin, Navigation, Loader2, Car } from 'lucide-react';
@@ -125,7 +125,11 @@ export default function Map() {
 
             {/* User location marker */}
             {userPosition && (
-              <Marker position={[userPosition.lat, userPosition.lng]} icon={userLocationIcon} />
+              <Marker position={[userPosition.lat, userPosition.lng]} icon={userLocationIcon}>
+                <Tooltip direction="top" offset={[0, -10]} permanent={false}>
+                  Sua localização
+                </Tooltip>
+              </Marker>
             )}
           </MapContainer>
 
