@@ -84,7 +84,7 @@ export function AIAssistantFab() {
       <button
         onClick={() => setIsOpen(true)}
         className={cn(
-          'fixed bottom-20 right-4 z-50 w-14 h-14 rounded-full',
+          'fixed bottom-24 right-4 z-40 w-14 h-14 rounded-full',
           'bg-primary text-primary-foreground shadow-lg',
           'flex items-center justify-center',
           'transition-all duration-300 hover:scale-110',
@@ -99,13 +99,13 @@ export function AIAssistantFab() {
       {/* Chat Panel */}
       <div
         className={cn(
-          'fixed bottom-20 right-4 z-50 w-[calc(100vw-2rem)] max-w-md',
+          'fixed bottom-24 right-4 z-50 w-[calc(100vw-2rem)] max-w-md',
           'bg-card border border-border rounded-2xl shadow-2xl',
           'flex flex-col overflow-hidden',
           'transition-all duration-300 origin-bottom-right',
           isOpen ? 'scale-100 opacity-100' : 'scale-0 opacity-0 pointer-events-none'
         )}
-        style={{ maxHeight: 'calc(100vh - 10rem)' }}
+        style={{ maxHeight: 'calc(100vh - 12rem)' }}
       >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-border bg-primary text-primary-foreground">
