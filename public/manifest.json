@@ -1,6 +1,6 @@
 {
-  "name": "MOVA - Usuário",
-  "short_name": "MOVA",
+  "name": "Mova Cliente",
+  "short_name": "Mova Cliente",
   "description": "Mobilidade que respeita seu tempo - Transporte executivo agendado",
   "start_url": "/",
   "display": "standalone",
