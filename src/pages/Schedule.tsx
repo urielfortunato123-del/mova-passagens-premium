@@ -5,11 +5,11 @@ import { ScheduleForm } from '@/components/booking/ScheduleForm';
 export default function Schedule() {
   return (
     <>
-      <Header title="Agendar corrida" showBack />
+      <Header title="Pedir MOVA" showBack />
       <PageContainer>
         <div className="animate-fade-in">
           <p className="text-muted-foreground text-sm mb-6">
-            Preencha os dados para agendar sua corrida executiva
+            Solicite uma corrida agora ou agende para depois
           </p>
           <ScheduleForm />
         </div>
