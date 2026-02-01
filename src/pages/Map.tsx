@@ -9,6 +9,7 @@ import { PageContainer } from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { useActiveRide } from '@/hooks/useBookings';
 import { useGeolocation } from '@/hooks/useGeolocation';
+import { useNotificationSound } from '@/hooks/useNotificationSound';
 
 // Fix for default marker icons in Leaflet with Vite
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -197,11 +198,27 @@ export default function Map() {
   const [nearbyDrivers, setNearbyDrivers] = useState<Driver[]>([]);
   const [filterNearby, setFilterNearby] = useState(false);
   const centerRef = useRef(userPosition || DEFAULT_POSITION);
+  const notifiedDriversRef = useRef<Set<number>>(new Set());
+  const { playNotificationSound } = useNotificationSound();
 
   // Filter drivers based on ETA
   const displayedDrivers = filterNearby 
     ? nearbyDrivers.filter(d => d.eta < 5) 
     : nearbyDrivers;
+
+  // Check for drivers that just became very close (< 2 min) and notify
+  useEffect(() => {
+    nearbyDrivers.forEach(driver => {
+      if (driver.eta < 2 && !notifiedDriversRef.current.has(driver.id)) {
+        // Driver just became very close - play notification
+        playNotificationSound();
+        notifiedDriversRef.current.add(driver.id);
+      } else if (driver.eta >= 3 && notifiedDriversRef.current.has(driver.id)) {
+        // Driver moved away - allow re-notification if they get close again
+        notifiedDriversRef.current.delete(driver.id);
+      }
+    });
+  }, [nearbyDrivers, playNotificationSound]);
 
   // Initialize drivers when center changes
   useEffect(() => {
