@@ -32,11 +32,23 @@ const paymentLabels: Record<PaymentMethod, { label: string; icon: React.ElementT
   pix: { label: 'PIX', icon: QrCode },
 };
 
-// Mock price estimation
-function estimatePrice(): number {
-  const baseFare = 25;
-  const multiplier = 1 + Math.random() * 2;
-  return Math.round(baseFare * multiplier * 100) / 100;
+// Pricing constants
+const BASE_FARE = 5.00; // Tarifa base
+const PRICE_PER_KM = 2.00; // R$2/km
+
+// Estimate distance from addresses (mock - in production use geocoding API)
+function estimateDistance(): number {
+  // Returns a reasonable distance estimate (3-15km for urban rides)
+  return 3 + Math.random() * 12;
+}
+
+// Calculate price based on distance
+function estimatePrice(distanceKm: number): { price: number; distance: number } {
+  const price = BASE_FARE + (distanceKm * PRICE_PER_KM);
+  return {
+    price: Math.round(price * 100) / 100,
+    distance: Math.round(distanceKm * 10) / 10
+  };
 }
 
 export function PricePreview({
@@ -51,7 +63,8 @@ export function PricePreview({
   isLoading,
   isInstant = false,
 }: PricePreviewProps) {
-  const estimatedPrice = estimatePrice();
+  const estimatedDistance = estimateDistance();
+  const { price: estimatedPrice, distance } = estimatePrice(estimatedDistance);
   const PaymentIcon = paymentLabels[paymentMethod].icon;
 
   return (
@@ -111,8 +124,15 @@ export function PricePreview({
 
           {/* Price */}
           <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-sm text-muted-foreground">Distância estimada</span>
+              <span className="text-sm font-medium">{distance} km</span>
+            </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Valor estimado</span>
+              <div>
+                <span className="text-sm text-muted-foreground">Valor estimado</span>
+                <p className="text-xs text-muted-foreground/70">R${BASE_FARE.toFixed(2)} + R${PRICE_PER_KM.toFixed(2)}/km</p>
+              </div>
               <span className="text-2xl font-bold text-primary">
                 R$ {estimatedPrice.toFixed(2)}
               </span>
