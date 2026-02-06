@@ -19,30 +19,37 @@ export function QuickActionCard({ to, icon, label, gradient, index }: QuickActio
       animate={{ opacity: 1, scale: 1, y: 0 }}
       transition={{
         delay: index * 0.1 + 0.4,
-        type: 'spring' as const,
+        type: 'spring',
         stiffness: 300,
         damping: 20
       }}
       whileHover={{ 
-        y: -4, 
-        scale: 1.05,
-        transition: { duration: 0.2 }
+        y: -6, 
+        scale: 1.08,
       }}
-      whileTap={{ scale: 0.95 }}
+      whileTap={{ 
+        scale: 0.88,
+        y: 2
+      }}
       onClick={() => navigate(to)}
-      className="premium-card p-3 flex flex-col items-center gap-2 text-center"
+      className="rounded-2xl backdrop-blur-2xl bg-gradient-to-br from-card/60 to-card/40 border border-white/20 p-4 flex flex-col items-center gap-3 text-center shadow-[0_4px_20px_hsl(var(--foreground)/0.06),inset_0_1px_0_hsl(255_255%_255%/0.1)] relative overflow-hidden group"
     >
+      {/* Glass shimmer on hover */}
+      <motion.div 
+        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 -translate-x-full group-hover:translate-x-full transition-all duration-700"
+      />
+      
       <motion.div 
         whileHover={{
-          scale: 1.2,
-          rotate: [0, -10, 10, 0],
-          transition: { duration: 0.4 }
+          scale: 1.15,
+          rotate: [0, -8, 8, 0],
         }}
-        className={`w-10 h-10 rounded-xl ${gradient} flex items-center justify-center text-white`}
+        transition={{ type: 'spring', stiffness: 400, damping: 10 }}
+        className={`w-12 h-12 rounded-2xl ${gradient} flex items-center justify-center text-white shadow-lg backdrop-blur-xl border border-white/20`}
       >
         {icon}
       </motion.div>
-      <span className="text-xs font-medium">{label}</span>
+      <span className="text-xs font-semibold relative z-10">{label}</span>
     </motion.button>
   );
 }
