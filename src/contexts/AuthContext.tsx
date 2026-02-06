@@ -139,18 +139,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       // Check if user has a profile, if not create one via onboarding
       if (authData.session && authData.user) {
-        const { data: existingProfile } = await movaSupabase
+        const { data: existingProfile, error: profileError } = await movaSupabase
           .from('users_profile')
-          .select('id')
+          .select('id, role')
           .eq('id', authData.user.id)
           .maybeSingle();
 
+        console.log('Profile check:', { existingProfile, profileError });
+
         if (!existingProfile) {
           // User doesn't have a profile, create one
-          const token = authData.session.access_token;
-          const userName = email.split('@')[0]; // Use email prefix as name
-          await onboarding(token, userName);
-          console.log('Profile created via onboarding for existing user');
+          try {
+            const token = authData.session.access_token;
+            const userName = authData.user.user_metadata?.name || email.split('@')[0];
+            console.log('Creating profile via onboarding for:', userName);
+            await onboarding(token, userName);
+            console.log('Profile created successfully via onboarding');
+            
+            // Fetch the newly created profile
+            await fetchProfile(authData.user.id);
+          } catch (onboardingError) {
+            console.error('Onboarding failed:', onboardingError);
+            toast({
+              variant: 'destructive',
+              title: 'Erro ao criar perfil',
+              description: 'Tente fazer login novamente.',
+            });
+            throw onboardingError;
+          }
+        } else {
+          // Profile exists, fetch it
+          await fetchProfile(authData.user.id);
         }
       }
 
