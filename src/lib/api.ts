@@ -1,28 +1,29 @@
-import { supabase } from "@/integrations/supabase/client";
+import { createClient } from "@supabase/supabase-js";
+
+// === CONFIGURAÇÃO MOVA BACKEND ===
+const MOVA_SUPABASE_URL = "https://phmgsnnwrnnutupjtpll.supabase.co";
+const MOVA_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBobWdzbm53cm5udXR1cGp0cGxsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3NTM1MTYsImV4cCI6MjA4NDMyOTUxNn0.-DxhL6zGiAMSI7A2v6XMAk8lIlq6ZXDnqGNECRHZRNk";
+
+// Cliente Supabase para o backend MOVA
+export const movaSupabase = createClient(MOVA_SUPABASE_URL, MOVA_SUPABASE_ANON_KEY);
 
 // === HELPER PARA CHAMADAS API ===
 async function apiCall<T = any>(
   endpoint: string,
   method: "GET" | "POST" | "PUT" | "DELETE",
-  body?: Record<string, unknown>
+  body?: Record<string, unknown>,
+  token?: string
 ): Promise<T> {
-  const { data: { session } } = await supabase.auth.getSession();
-  const token = session?.access_token;
-
-  if (!token) {
-    throw new Error("Usuário não autenticado");
-  }
-
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-  const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    "apikey": anonKey,
-    "Authorization": `Bearer ${token}`,
+    "apikey": MOVA_SUPABASE_ANON_KEY,
   };
+  
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
 
-  const res = await fetch(`${supabaseUrl}/functions/v1/${endpoint}`, {
+  const res = await fetch(`${MOVA_SUPABASE_URL}/functions/v1/${endpoint}`, {
     method,
     headers,
     body: body ? JSON.stringify(body) : undefined,
@@ -36,6 +37,12 @@ async function apiCall<T = any>(
   return res.json();
 }
 
+// Obtém o token do usuário logado no MOVA backend
+export async function getMovaToken(): Promise<string | null> {
+  const { data: { session } } = await movaSupabase.auth.getSession();
+  return session?.access_token || null;
+}
+
 // === TIPOS ===
 export interface Location {
   lat: number;
@@ -43,13 +50,8 @@ export interface Location {
   address: string;
 }
 
-export type PaymentMethod = 'credit' | 'debit' | 'cash' | 'pix';
+export type PaymentMethod = 'credit_card' | 'debit_card' | 'cash' | 'pix';
 export type PaymentStatus = 'pending' | 'paid' | 'refunded';
-
-export interface PaymentInfo {
-  method: PaymentMethod;
-  pay_before: boolean; // Se vai pagar antes de solicitar
-}
 
 export interface RideResponse {
   success: boolean;
@@ -86,85 +88,85 @@ export interface RideDetail {
 }
 
 // === 1. ONBOARDING (após signup) ===
-export async function onboarding(fullName: string, phone?: string) {
+export async function onboarding(token: string, fullName: string, phone?: string) {
   return apiCall("api-onboarding", "POST", {
     role: "passenger",
     full_name: fullName,
     phone: phone || null,
-  });
+  }, token);
 }
 
-// === 2. SOLICITAR CORRIDA ===
+// === 2. SOLICITAR CORRIDA COM PAGAMENTO ===
 export async function requestRide(
+  token: string,
   origin: Location,
   destination: Location,
-  payment: PaymentInfo,
+  paymentMethod: PaymentMethod,
+  paymentStatus: PaymentStatus = 'pending',
   scheduledFor?: string | null
 ): Promise<RideResponse> {
   return apiCall("api-rides", "POST", {
-    origin: {
-      lat: origin.lat,
-      lng: origin.lng,
-      address: origin.address,
-    },
-    destination: {
-      lat: destination.lat,
-      lng: destination.lng,
-      address: destination.address,
-    },
-    payment: {
-      method: payment.method,
-      pay_before: payment.pay_before,
-    },
+    origin,
+    destination,
+    payment_method: paymentMethod,
+    payment_status: paymentStatus,
     scheduled_for: scheduledFor || null,
-  });
+  }, token);
 }
 
 // === 3. ACOMPANHAR CORRIDA (Realtime) ===
 export function subscribeToRide(
   rideId: string,
-  callback: (status: string, payload: any) => void
+  callback: (ride: any) => void
 ) {
-  return supabase
+  return movaSupabase
     .channel(`ride-${rideId}`)
     .on(
       "postgres_changes",
       {
         event: "UPDATE",
         schema: "public",
-        table: "rides", // Tabela correta
+        table: "rides_v2",
         filter: `id=eq.${rideId}`,
       },
       (payload) => {
-        callback(payload.new.status, payload.new);
+        callback(payload.new);
       }
     )
     .subscribe();
 }
 
 // === 4. CANCELAR CORRIDA ===
-export async function cancelRide(rideId: string) {
+export async function cancelRide(token: string, rideId: string) {
   return apiCall("api-ride-status", "POST", {
     ride_id: rideId,
     status: "CANCELLED",
-  });
+  }, token);
 }
 
 // === 5. ATUALIZAR STATUS DA CORRIDA ===
 export async function updateRideStatus(
+  token: string,
   rideId: string,
   status: "ARRIVING" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED"
 ) {
   return apiCall("api-ride-status", "POST", {
     ride_id: rideId,
     status,
-  });
+  }, token);
 }
 
 // === 6. DETALHES DA CORRIDA ===
-export async function getRideDetail(rideId: string): Promise<RideDetail> {
-  return apiCall(`api-ride-detail?ride_id=${rideId}`, "GET");
+export async function getRideDetail(token: string, rideId: string): Promise<RideDetail> {
+  return apiCall(`api-ride-detail?ride_id=${rideId}`, "GET", undefined, token);
 }
+
+// === OPÇÕES DE PAGAMENTO ===
+// PIX: pagar ANTES (payment_status: 'paid')
+// Crédito antecipado: pagar ANTES (payment_status: 'paid')
+// Crédito no carro: pagar DEPOIS (payment_status: 'pending')
+// Débito: pagar no carro (payment_status: 'pending')
+// Dinheiro: pagar no carro (payment_status: 'pending')
 
 // === FLUXO DE STATUS ===
 // MATCHING → ACCEPTED → ARRIVING → IN_PROGRESS → COMPLETED
