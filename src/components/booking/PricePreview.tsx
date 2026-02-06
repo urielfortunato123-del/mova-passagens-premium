@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Clock, Info, Loader2, CreditCard, Banknote, QrCode, Wallet } from 'lucide-react';
@@ -63,8 +64,12 @@ export function PricePreview({
   isLoading,
   isInstant = false,
 }: PricePreviewProps) {
-  const estimatedDistance = estimateDistance();
-  const { price: estimatedPrice, distance } = estimatePrice(estimatedDistance);
+  // useMemo to stabilize the estimate - only recalculate when addresses change
+  const { price, distance } = useMemo(() => {
+    const dist = estimateDistance();
+    return estimatePrice(dist);
+  }, [pickupAddress, dropoffAddress]);
+  
   const PaymentIcon = paymentLabels[paymentMethod].icon;
 
   return (
@@ -134,7 +139,7 @@ export function PricePreview({
                 <p className="text-xs text-muted-foreground/70">R${BASE_FARE.toFixed(2)} + R${PRICE_PER_KM.toFixed(2)}/km</p>
               </div>
               <span className="text-2xl font-bold text-primary">
-                R$ {estimatedPrice.toFixed(2)}
+                R$ {price.toFixed(2)}
               </span>
             </div>
           </div>

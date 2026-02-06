@@ -130,12 +130,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      const { error } = await movaSupabase.auth.signInWithPassword({
+      const { data: authData, error } = await movaSupabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) throw error;
+
+      // Check if user has a profile, if not create one via onboarding
+      if (authData.session && authData.user) {
+        const { data: existingProfile } = await movaSupabase
+          .from('users_profile')
+          .select('id')
+          .eq('id', authData.user.id)
+          .maybeSingle();
+
+        if (!existingProfile) {
+          // User doesn't have a profile, create one
+          const token = authData.session.access_token;
+          const userName = email.split('@')[0]; // Use email prefix as name
+          await onboarding(token, userName);
+          console.log('Profile created via onboarding for existing user');
+        }
+      }
 
       toast({
         title: 'Bem-vindo de volta!',
