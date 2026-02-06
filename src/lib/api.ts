@@ -43,10 +43,20 @@ export interface Location {
   address: string;
 }
 
+export type PaymentMethod = 'credit' | 'debit' | 'cash' | 'pix';
+export type PaymentStatus = 'pending' | 'paid' | 'refunded';
+
+export interface PaymentInfo {
+  method: PaymentMethod;
+  pay_before: boolean; // Se vai pagar antes de solicitar
+}
+
 export interface RideResponse {
   success: boolean;
   ride_id: string;
   status: string;
+  payment_method: PaymentMethod;
+  payment_status: PaymentStatus;
   drivers_notified: number;
   message: string;
 }
@@ -58,6 +68,8 @@ export interface RideDetail {
     status: string;
     origin_address: string;
     dest_address: string;
+    payment_method: PaymentMethod;
+    payment_status: PaymentStatus;
     passenger?: {
       full_name: string;
       phone: string;
@@ -86,6 +98,7 @@ export async function onboarding(fullName: string, phone?: string) {
 export async function requestRide(
   origin: Location,
   destination: Location,
+  payment: PaymentInfo,
   scheduledFor?: string | null
 ): Promise<RideResponse> {
   return apiCall("api-rides", "POST", {
@@ -98,6 +111,10 @@ export async function requestRide(
       lat: destination.lat,
       lng: destination.lng,
       address: destination.address,
+    },
+    payment: {
+      method: payment.method,
+      pay_before: payment.pay_before,
     },
     scheduled_for: scheduledFor || null,
   });

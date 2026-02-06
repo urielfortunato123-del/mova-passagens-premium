@@ -18,6 +18,10 @@ interface CreateRideRequest {
     lng: number;
     address: string;
   };
+  payment?: {
+    method: 'credit' | 'debit' | 'cash' | 'pix';
+    pay_before: boolean;
+  };
   scheduled_for?: string | null;
 }
 
@@ -97,6 +101,14 @@ serve(async (req) => {
       );
     }
 
+    // Payment validation
+    const paymentMethod = body.payment?.method || 'cash';
+    const payBefore = body.payment?.pay_before || false;
+    
+    // PIX always requires paying before
+    const requiresPaymentBefore = paymentMethod === 'pix' || (paymentMethod === 'credit' && payBefore);
+    const paymentStatus = requiresPaymentBefore ? 'pending' : 'pending'; // Will be 'paid' after processing
+
     // Create the ride with MATCHING status
     const { data: ride, error: rideError } = await supabaseAdmin
       .from("rides")
@@ -109,6 +121,8 @@ serve(async (req) => {
         dest_lat: body.destination.lat,
         dest_lng: body.destination.lng,
         dest_address: body.destination.address,
+        payment_method: paymentMethod,
+        payment_status: paymentStatus,
         scheduled_for: body.scheduled_for || null,
       })
       .select()
@@ -126,7 +140,12 @@ serve(async (req) => {
     await supabaseAdmin.from("ride_events").insert({
       ride_id: ride.id,
       event_type: "RIDE_CREATED",
-      payload: { passenger_id: userId, status: "MATCHING" },
+      payload: { 
+        passenger_id: userId, 
+        status: "MATCHING",
+        payment_method: paymentMethod,
+        pay_before: requiresPaymentBefore,
+      },
     });
 
     // Find nearby drivers using the database function
@@ -179,6 +198,8 @@ serve(async (req) => {
         success: true,
         ride_id: ride.id,
         status: ride.status,
+        payment_method: ride.payment_method,
+        payment_status: ride.payment_status,
         drivers_notified: nearbyDrivers?.length || 0,
         message: nearbyDrivers?.length 
           ? `Ride created and ${nearbyDrivers.length} drivers notified`
