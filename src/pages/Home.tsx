@@ -1,6 +1,6 @@
 import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import { Calendar, Clock, MapPin, ArrowRight, Car, DollarSign, TrendingUp, CheckCircle2, Gift, Sparkles, ChevronRight, Zap } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Calendar, Clock, MapPin, ArrowRight, Car, DollarSign, TrendingUp, Gift, Sparkles, ChevronRight, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/layout/Header';
 import { PageContainer } from '@/components/layout/PageContainer';
@@ -9,6 +9,8 @@ import { StatusChip } from '@/components/ui/status-chip';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNextBooking, useActiveRide, useBookings, useRecentBookings } from '@/hooks/useBookings';
 import { membershipTiers } from '@/data/benefits';
+import { StatsGrid } from '@/components/home/StatsGrid';
+import { QuickActionCard } from '@/components/home/QuickActionCard';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -21,9 +23,9 @@ export default function Home() {
 
   const greeting = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return 'Olá,';
-    if (hour < 18) return 'Olá,';
-    return 'Olá,';
+    if (hour < 12) return 'Bom dia,';
+    if (hour < 18) return 'Boa tarde,';
+    return 'Boa noite,';
   };
 
   // Calculate stats
@@ -53,29 +55,73 @@ export default function Home() {
     .reverse()
     .find(tier => monthlyRides >= tier.minRides) || membershipTiers[0];
 
+  // Stats data for the grid
+  const statsData = [
+    { title: 'Corridas Hoje', value: todayBookings.length, icon: Calendar, accentColor: 'primary' as const },
+    { title: 'Próxima às', value: nextBookingTime, icon: Clock, accentColor: 'muted' as const },
+    { title: 'Total Gasto', value: `R$ ${totalSpent.toFixed(0)}`, icon: DollarSign, highlight: true, accentColor: 'accent' as const },
+    { title: 'Concluídas', value: completedBookings.length, icon: TrendingUp, accentColor: 'muted' as const },
+  ];
+
+  // Quick actions data
+  const quickActions = [
+    { to: '/partners', icon: '🛍️', label: 'Parceiros', gradient: 'bg-gradient-to-br from-pink-500 to-orange-500' },
+    { to: '/telephony', icon: '📱', label: 'Telefonia', gradient: 'bg-gradient-to-br from-blue-500 to-cyan-500' },
+    { to: '/bradesco', icon: 'B', label: 'Bradesco', gradient: 'bg-gradient-to-br from-red-600 to-red-800', isBold: true },
+  ];
+
   return (
     <>
       <Header title="MOVA" />
       <PageContainer>
-        <div className="space-y-6 animate-fade-in">
+        <div className="space-y-6">
           {/* Greeting */}
-          <div className="space-y-0">
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+            className="space-y-0"
+          >
             <p className="text-muted-foreground text-sm">{greeting()}</p>
-            <h2 className="text-3xl font-bold">
+            <motion.h2 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1, duration: 0.5 }}
+              className="text-3xl font-bold"
+            >
               {passengerProfile?.name?.split(' ')[0] || 'Passageiro'}
-            </h2>
-          </div>
+            </motion.h2>
+          </motion.div>
 
           {/* MOVA+ Card */}
-          <button
+          <motion.button
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ delay: 0.15, type: 'spring' as const, stiffness: 260, damping: 20 }}
+            whileHover={{ 
+              y: -4, 
+              scale: 1.02,
+              boxShadow: '0 0 30px hsl(152 75% 45% / 0.3)'
+            }}
+            whileTap={{ scale: 0.98 }}
             onClick={() => navigate('/benefits')}
-            className="w-full premium-card p-4 text-left bg-gradient-to-r from-primary/10 to-primary/5 border-primary/30 hover-scale"
+            className="w-full premium-card p-4 text-left bg-gradient-to-r from-primary/10 to-primary/5 border-primary/30"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+                <motion.div 
+                  animate={{ 
+                    boxShadow: [
+                      '0 0 10px hsl(152 75% 45% / 0.2)',
+                      '0 0 25px hsl(152 75% 45% / 0.4)',
+                      '0 0 10px hsl(152 75% 45% / 0.2)'
+                    ]
+                  }}
+                  transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                  className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center"
+                >
                   <span className="text-2xl">{currentTier.icon}</span>
-                </div>
+                </motion.div>
                 <div>
                   <div className="flex items-center gap-2">
                     <Sparkles className="w-4 h-4 text-primary" />
@@ -86,70 +132,47 @@ export default function Home() {
                   </p>
                 </div>
               </div>
-              <ChevronRight className="w-5 h-5 text-primary" />
+              <motion.div
+                animate={{ x: [0, 5, 0] }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+              >
+                <ChevronRight className="w-5 h-5 text-primary" />
+              </motion.div>
             </div>
-          </button>
+          </motion.button>
 
-          {/* Stats Cards - Grid 2x2 */}
-          <div className="grid grid-cols-2 gap-3">
-            {/* Corridas Hoje */}
-            <div className="premium-card p-4 flex flex-col">
-              <div className="flex items-start justify-between">
-                <span className="text-sm text-muted-foreground">Corridas Hoje</span>
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <Calendar className="w-5 h-5 text-primary" />
-                </div>
-              </div>
-              <span className="text-3xl font-bold mt-2">{todayBookings.length}</span>
-            </div>
-
-            {/* Próxima às */}
-            <div className="premium-card p-4 flex flex-col">
-              <div className="flex items-start justify-between">
-                <span className="text-sm text-muted-foreground">Próxima às</span>
-                <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
-                  <Clock className="w-5 h-5 text-muted-foreground" />
-                </div>
-              </div>
-              <span className="text-3xl font-bold mt-2">{nextBookingTime}</span>
-            </div>
-
-            {/* Total Gasto */}
-            <div className="premium-card p-4 flex flex-col border-l-4 border-l-accent">
-              <div className="flex items-start justify-between">
-                <span className="text-sm text-muted-foreground">Total Gasto</span>
-                <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
-                  <DollarSign className="w-5 h-5 text-accent" />
-                </div>
-              </div>
-              <span className="text-2xl font-bold mt-2 text-accent">
-                R$ {totalSpent.toFixed(0)}
-              </span>
-            </div>
-
-            {/* Concluídas */}
-            <div className="premium-card p-4 flex flex-col">
-              <div className="flex items-start justify-between">
-                <span className="text-sm text-muted-foreground">Concluídas</span>
-                <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
-                  <TrendingUp className="w-5 h-5 text-muted-foreground" />
-                </div>
-              </div>
-              <span className="text-3xl font-bold mt-2">{completedBookings.length}</span>
-            </div>
-          </div>
+          {/* Stats Cards - Animated Grid */}
+          <StatsGrid stats={statsData} />
 
           {/* Active Ride Banner */}
           {activeRide && (
-            <button
+            <motion.button
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ 
+                opacity: 1, 
+                scale: 1,
+                boxShadow: [
+                  '0 0 0 0 hsl(152 75% 45% / 0)',
+                  '0 0 0 8px hsl(152 75% 45% / 0.2)',
+                  '0 0 0 0 hsl(152 75% 45% / 0)'
+                ]
+              }}
+              transition={{ 
+                duration: 0.4,
+                boxShadow: { duration: 2, repeat: Infinity }
+              }}
               onClick={() => navigate('/live')}
-              className="w-full premium-card p-4 text-left animate-pulse-slow ring-2 ring-primary"
+              className="w-full premium-card p-4 text-left ring-2 ring-primary"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center animate-bounce-subtle">
+                  <motion.div 
+                    animate={{ y: [-2, 2, -2] }}
+                    transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+                    className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center"
+                  >
                     <Car className="w-6 h-6 text-primary" />
-                  </div>
+                  </motion.div>
                   <div>
                     <p className="font-semibold">Corrida em andamento</p>
                     <p className="text-sm text-muted-foreground">
@@ -159,21 +182,43 @@ export default function Home() {
                 </div>
                 <ArrowRight className="w-5 h-5 text-primary" />
               </div>
-            </button>
+            </motion.button>
           )}
 
           {/* Main Action Button */}
-          <Button
-            onClick={() => navigate('/schedule')}
-            className="w-full h-14 text-base font-semibold"
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, type: 'spring' as const, stiffness: 260, damping: 20 }}
           >
-            <Zap className="w-5 h-5 mr-2" />
-            Pedir MOVA
-          </Button>
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <Button
+                onClick={() => navigate('/schedule')}
+                className="w-full h-14 text-base font-semibold"
+                variant="premium"
+              >
+                <motion.div
+                  animate={{ rotate: [0, 10, -10, 0] }}
+                  transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 3 }}
+                >
+                  <Zap className="w-5 h-5 mr-2" />
+                </motion.div>
+                Pedir MOVA
+              </Button>
+            </motion.div>
+          </motion.div>
 
           {/* Next Booking */}
           {nextBooking && !activeRide && (
-            <div className="space-y-3">
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6, type: 'spring' as const, stiffness: 260, damping: 20 }}
+              className="space-y-3"
+            >
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold">Próxima Corrida</h3>
                 <span className="text-sm text-muted-foreground">
@@ -181,9 +226,11 @@ export default function Home() {
                 </span>
               </div>
               
-              <button
+              <motion.button
+                whileHover={{ y: -4, scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
                 onClick={() => navigate(`/bookings/${nextBooking.id}`)}
-                className="w-full premium-card p-4 text-left border-l-4 border-l-primary hover-scale"
+                className="w-full premium-card p-4 text-left border-l-4 border-l-primary"
               >
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
@@ -211,56 +258,51 @@ export default function Home() {
                     <p className="text-sm line-clamp-1">{nextBooking.dropoffAddress}</p>
                   </div>
                 </div>
-              </button>
-            </div>
+              </motion.button>
+            </motion.div>
           )}
 
           {/* Quick Access - Benefits */}
-          <div className="space-y-3">
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.7 }}
+            className="space-y-3"
+          >
             <h3 className="font-semibold flex items-center gap-2">
               <Gift className="w-4 h-4 text-primary" />
               Benefícios Exclusivos
             </h3>
             
             <div className="grid grid-cols-3 gap-3">
-              <button
-                onClick={() => navigate('/partners')}
-                className="premium-card p-3 flex flex-col items-center gap-2 text-center hover-scale"
-              >
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center text-white">
-                  🛍️
-                </div>
-                <span className="text-xs font-medium">Parceiros</span>
-              </button>
-
-              <button
-                onClick={() => navigate('/telephony')}
-                className="premium-card p-3 flex flex-col items-center gap-2 text-center hover-scale"
-              >
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white">
-                  📱
-                </div>
-                <span className="text-xs font-medium">Telefonia</span>
-              </button>
-
-              <button
-                onClick={() => navigate('/bradesco')}
-                className="premium-card p-3 flex flex-col items-center gap-2 text-center hover-scale"
-              >
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-600 to-red-800 flex items-center justify-center text-white font-bold text-xs">
-                  B
-                </div>
-                <span className="text-xs font-medium">Bradesco</span>
-              </button>
+              {quickActions.map((action, index) => (
+                <QuickActionCard
+                  key={action.to}
+                  to={action.to}
+                  icon={action.isBold ? <span className="font-bold text-xs">{action.icon}</span> : action.icon}
+                  label={action.label}
+                  gradient={action.gradient}
+                  index={index}
+                />
+              ))}
             </div>
-          </div>
+          </motion.div>
 
           {/* Empty state if no bookings */}
           {!nextBooking && !activeRide && recentBookings.length === 0 && (
-            <div className="text-center py-8 space-y-4 animate-scale-in">
-              <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.5, type: 'spring' as const }}
+              className="text-center py-8 space-y-4"
+            >
+              <motion.div 
+                animate={{ y: [-5, 5, -5] }}
+                transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto"
+              >
                 <MapPin className="w-8 h-8 text-muted-foreground" />
-              </div>
+              </motion.div>
               <div>
                 <p className="font-medium">Nenhuma corrida ainda</p>
                 <p className="text-sm text-muted-foreground mt-1">
@@ -271,7 +313,7 @@ export default function Home() {
                 <Zap className="w-4 h-4 mr-2" />
                 Pedir agora
               </Button>
-            </div>
+            </motion.div>
           )}
         </div>
       </PageContainer>
