@@ -26,8 +26,8 @@ interface PricePreviewProps {
 }
 
 const paymentLabels: Record<PaymentMethod, { label: string; icon: React.ElementType }> = {
-  credit: { label: 'Cartão de Crédito', icon: CreditCard },
-  debit: { label: 'Cartão de Débito', icon: Wallet },
+  credit_card: { label: 'Cartão de Crédito', icon: CreditCard },
+  debit_card: { label: 'Cartão de Débito', icon: Wallet },
   cash: { label: 'Dinheiro', icon: Banknote },
   pix: { label: 'PIX', icon: QrCode },
 };

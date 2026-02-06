@@ -1,7 +1,8 @@
 import { CreditCard, Banknote, QrCode, Wallet } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { PaymentMethod } from '@/lib/api';
 
-export type PaymentMethod = 'credit' | 'debit' | 'cash' | 'pix';
+export type { PaymentMethod } from '@/lib/api';
 
 interface PaymentOption {
   value: PaymentMethod;
@@ -20,14 +21,14 @@ const paymentOptions: PaymentOption[] = [
     payBefore: true,
   },
   {
-    value: 'credit',
+    value: 'credit_card',
     label: 'Crédito',
     description: 'Pague antes ou no app',
     icon: CreditCard,
-    payBefore: false, // Pode escolher
+    payBefore: false,
   },
   {
-    value: 'debit',
+    value: 'debit_card',
     label: 'Débito',
     description: 'Pague no carro',
     icon: Wallet,
@@ -56,7 +57,7 @@ export function PaymentMethodSelect({
   onPayBeforeChange,
 }: PaymentMethodSelectProps) {
   const selectedOption = paymentOptions.find((opt) => opt.value === value);
-  const showPayBeforeOption = value === 'credit';
+  const showPayBeforeOption = value === 'credit_card';
 
   return (
     <div className="space-y-3">
@@ -79,7 +80,7 @@ export function PaymentMethodSelect({
                 // PIX sempre paga antes
                 if (option.value === 'pix' && onPayBeforeChange) {
                   onPayBeforeChange(true);
-                } else if (option.value !== 'credit' && onPayBeforeChange) {
+                } else if (option.value !== 'credit_card' && onPayBeforeChange) {
                   onPayBeforeChange(false);
                 }
               }}
@@ -113,7 +114,7 @@ export function PaymentMethodSelect({
       </div>
 
       {/* Opção de pagar antes para crédito */}
-      {showPayBeforeOption && onPayBeforeChange && (
+      {showPayBeforeOption && onPayBeforeChange && value === 'credit_card' && (
         <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 border">
           <input
             type="checkbox"
@@ -136,7 +137,7 @@ export function PaymentMethodSelect({
         <div
           className={cn(
             'p-3 rounded-lg text-sm',
-            selectedOption.payBefore || (value === 'credit' && payBeforeRide)
+            selectedOption.payBefore || (value === 'credit_card' && payBeforeRide)
               ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400'
               : 'bg-muted/50 text-muted-foreground'
           )}
@@ -147,19 +148,19 @@ export function PaymentMethodSelect({
               gerado após confirmar.
             </>
           )}
-          {value === 'credit' && payBeforeRide && (
+          {value === 'credit_card' && payBeforeRide && (
             <>
               <strong>Crédito antecipado:</strong> O valor será cobrado antes da
               corrida começar.
             </>
           )}
-          {value === 'credit' && !payBeforeRide && (
+          {value === 'credit_card' && !payBeforeRide && (
             <>
               <strong>Crédito:</strong> O motorista passará a maquininha no
               final da corrida.
             </>
           )}
-          {value === 'debit' && (
+          {value === 'debit_card' && (
             <>
               <strong>Débito:</strong> O motorista passará a maquininha no carro.
             </>
