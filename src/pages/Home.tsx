@@ -93,39 +93,48 @@ export default function Home() {
             </motion.h2>
           </motion.div>
 
-          {/* MOVA+ Card */}
+          {/* MOVA+ Card - iOS 26 Liquid Glass Style */}
           <motion.button
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ delay: 0.15, type: 'spring' as const, stiffness: 260, damping: 20 }}
+            transition={{ delay: 0.15, type: 'spring', stiffness: 260, damping: 20 }}
             whileHover={{ 
-              y: -4, 
+              y: -6, 
               scale: 1.02,
-              boxShadow: '0 0 30px hsl(152 75% 45% / 0.3)'
             }}
-            whileTap={{ scale: 0.98 }}
+            whileTap={{ 
+              scale: 0.95,
+              y: 2
+            }}
             onClick={() => navigate('/benefits')}
-            className="w-full premium-card p-4 text-left bg-gradient-to-r from-primary/10 to-primary/5 border-primary/30"
+            className="w-full rounded-3xl backdrop-blur-2xl p-5 text-left bg-gradient-to-br from-primary/15 via-primary/10 to-primary/5 border border-white/25 shadow-[0_8px_32px_hsl(var(--primary)/0.15),inset_0_1px_0_hsl(255_255%_255%/0.2)] relative overflow-hidden group"
           >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
+            {/* Glass shimmer effect */}
+            <motion.div 
+              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full"
+              animate={{ x: ['0%', '200%'] }}
+              transition={{ duration: 4, repeat: Infinity, repeatDelay: 3, ease: 'easeInOut' }}
+            />
+            
+            <div className="flex items-center justify-between relative z-10">
+              <div className="flex items-center gap-4">
                 <motion.div 
                   animate={{ 
                     boxShadow: [
-                      '0 0 10px hsl(152 75% 45% / 0.2)',
-                      '0 0 25px hsl(152 75% 45% / 0.4)',
-                      '0 0 10px hsl(152 75% 45% / 0.2)'
+                      '0 0 15px hsl(152 75% 45% / 0.3)',
+                      '0 0 30px hsl(152 75% 45% / 0.5)',
+                      '0 0 15px hsl(152 75% 45% / 0.3)'
                     ]
                   }}
                   transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-                  className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center"
+                  className="w-14 h-14 rounded-2xl backdrop-blur-xl bg-gradient-to-br from-primary/30 to-primary/10 border border-white/20 flex items-center justify-center"
                 >
                   <span className="text-2xl">{currentTier.icon}</span>
                 </motion.div>
                 <div>
                   <div className="flex items-center gap-2">
                     <Sparkles className="w-4 h-4 text-primary" />
-                    <span className="font-semibold">MOVA+</span>
+                    <span className="font-bold text-lg">MOVA+</span>
                   </div>
                   <p className="text-sm text-muted-foreground">
                     Nível {currentTier.name} • +{currentTier.cashbackPercent}% cashback
@@ -133,8 +142,9 @@ export default function Home() {
                 </div>
               </div>
               <motion.div
-                animate={{ x: [0, 5, 0] }}
+                animate={{ x: [0, 6, 0] }}
                 transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+                className="w-10 h-10 rounded-full backdrop-blur-xl bg-white/10 border border-white/20 flex items-center justify-center"
               >
                 <ChevronRight className="w-5 h-5 text-primary" />
               </motion.div>
@@ -144,71 +154,97 @@ export default function Home() {
           {/* Stats Cards - Animated Grid */}
           <StatsGrid stats={statsData} />
 
-          {/* Active Ride Banner */}
+          {/* Active Ride Banner - iOS 26 Style */}
           {activeRide && (
             <motion.button
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ 
                 opacity: 1, 
                 scale: 1,
-                boxShadow: [
-                  '0 0 0 0 hsl(152 75% 45% / 0)',
-                  '0 0 0 8px hsl(152 75% 45% / 0.2)',
-                  '0 0 0 0 hsl(152 75% 45% / 0)'
-                ]
               }}
-              transition={{ 
-                duration: 0.4,
-                boxShadow: { duration: 2, repeat: Infinity }
-              }}
+              whileHover={{ scale: 1.02, y: -4 }}
+              whileTap={{ scale: 0.96 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 17 }}
               onClick={() => navigate('/live')}
-              className="w-full premium-card p-4 text-left ring-2 ring-primary"
+              className="w-full rounded-2xl backdrop-blur-2xl p-4 text-left bg-gradient-to-br from-primary/20 to-primary/10 border-2 border-primary/50 shadow-[0_0_24px_hsl(var(--primary)/0.3)] relative overflow-hidden"
             >
-              <div className="flex items-center justify-between">
+              {/* Pulsing ring */}
+              <motion.div 
+                className="absolute inset-0 rounded-2xl border-2 border-primary/50"
+                animate={{ 
+                  scale: [1, 1.02, 1],
+                  opacity: [0.5, 0.8, 0.5]
+                }}
+                transition={{ duration: 2, repeat: Infinity }}
+              />
+              
+              <div className="flex items-center justify-between relative z-10">
                 <div className="flex items-center gap-3">
                   <motion.div 
-                    animate={{ y: [-2, 2, -2] }}
+                    animate={{ y: [-3, 3, -3] }}
                     transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-                    className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center"
+                    className="w-14 h-14 rounded-2xl backdrop-blur-xl bg-gradient-to-br from-primary/40 to-primary/20 border border-white/20 flex items-center justify-center"
                   >
-                    <Car className="w-6 h-6 text-primary" />
+                    <Car className="w-7 h-7 text-primary" />
                   </motion.div>
                   <div>
-                    <p className="font-semibold">Corrida em andamento</p>
+                    <p className="font-bold text-lg">Corrida em andamento</p>
                     <p className="text-sm text-muted-foreground">
                       {activeRide.driverName || 'Motorista a caminho'}
                     </p>
                   </div>
                 </div>
-                <ArrowRight className="w-5 h-5 text-primary" />
+                <motion.div
+                  animate={{ x: [0, 6, 0] }}
+                  transition={{ duration: 1, repeat: Infinity }}
+                  className="w-10 h-10 rounded-full backdrop-blur-xl bg-primary/20 border border-white/20 flex items-center justify-center"
+                >
+                  <ArrowRight className="w-5 h-5 text-primary" />
+                </motion.div>
               </div>
             </motion.button>
           )}
 
-          {/* Main Action Button */}
+          {/* Main Action Button - iOS 26 Liquid Glass Style */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, type: 'spring' as const, stiffness: 260, damping: 20 }}
+            transition={{ delay: 0.5, type: 'spring', stiffness: 260, damping: 20 }}
           >
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+            <motion.button
+              onClick={() => navigate('/schedule')}
+              whileHover={{ 
+                scale: 1.03, 
+                y: -4,
+              }}
+              whileTap={{ 
+                scale: 0.92,
+                y: 2
+              }}
+              transition={{
+                type: 'spring',
+                stiffness: 400,
+                damping: 17
+              }}
+              className="w-full h-16 text-base font-semibold rounded-2xl backdrop-blur-2xl bg-gradient-to-r from-primary/90 via-primary to-primary-glow/90 text-primary-foreground border border-white/30 shadow-[0_8px_32px_hsl(var(--primary)/0.4),inset_0_2px_0_hsl(255_255%_255%/0.25),inset_0_-2px_8px_hsl(var(--primary)/0.3)] flex items-center justify-center gap-2 relative overflow-hidden group"
             >
-              <Button
-                onClick={() => navigate('/schedule')}
-                className="w-full h-14 text-base font-semibold"
-                variant="premium"
+              {/* Glass shine effect */}
+              <motion.div 
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full"
+                animate={{ x: ['0%', '200%'] }}
+                transition={{ duration: 3, repeat: Infinity, repeatDelay: 2, ease: 'easeInOut' }}
+              />
+              <motion.div
+                animate={{ 
+                  rotate: [0, 15, -15, 0],
+                  scale: [1, 1.2, 1]
+                }}
+                transition={{ duration: 0.6, repeat: Infinity, repeatDelay: 2.5 }}
               >
-                <motion.div
-                  animate={{ rotate: [0, 10, -10, 0] }}
-                  transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 3 }}
-                >
-                  <Zap className="w-5 h-5 mr-2" />
-                </motion.div>
-                Pedir MOVA
-              </Button>
-            </motion.div>
+                <Zap className="w-6 h-6" />
+              </motion.div>
+              <span className="relative z-10 text-lg">Pedir MOVA</span>
+            </motion.button>
           </motion.div>
 
           {/* Next Booking */}
@@ -309,10 +345,16 @@ export default function Home() {
                   Peça sua primeira corrida e viaje com conforto
                 </p>
               </div>
-              <Button onClick={() => navigate('/schedule')}>
-                <Zap className="w-4 h-4 mr-2" />
+              <motion.button
+                onClick={() => navigate('/schedule')}
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.92 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+                className="h-12 px-6 rounded-2xl backdrop-blur-xl bg-gradient-to-r from-primary/90 to-primary text-primary-foreground border border-white/25 shadow-[0_4px_16px_hsl(var(--primary)/0.3),inset_0_1px_0_hsl(255_255%_255%/0.2)] flex items-center justify-center gap-2 font-semibold"
+              >
+                <Zap className="w-4 h-4" />
                 Pedir agora
-              </Button>
+              </motion.button>
             </motion.div>
           )}
         </div>
