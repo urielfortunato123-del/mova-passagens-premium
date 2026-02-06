@@ -86,13 +86,31 @@ async function searchAddresses(query: string): Promise<NominatimResult[]> {
   }
 }
 
-function formatAddress(result: NominatimResult): string {
+// Extract house number from user input (e.g., "Rua X 447" or "Rua X, 447")
+function extractHouseNumber(input: string): string | null {
+  // Match patterns like "447", ", 447", " 447" at end or middle of string
+  const match = input.match(/[,\s]+(\d+[A-Za-z]?)(?:\s*[-,]|$|\s+\w)/);
+  if (match) return match[1];
+  
+  // Match number at end of string
+  const endMatch = input.match(/\s+(\d+[A-Za-z]?)$/);
+  if (endMatch) return endMatch[1];
+  
+  return null;
+}
+
+function formatAddress(result: NominatimResult, userInput?: string): string {
   const { address } = result;
   const parts: string[] = [];
+  
+  // Get house number from API or extract from user input
+  const apiHouseNumber = address.house_number;
+  const userHouseNumber = userInput ? extractHouseNumber(userInput) : null;
+  const houseNumber = apiHouseNumber || userHouseNumber;
 
   if (address.road) {
-    if (address.house_number) {
-      parts.push(`${address.road}, ${address.house_number}`);
+    if (houseNumber) {
+      parts.push(`${address.road}, ${houseNumber}`);
     } else {
       parts.push(address.road);
     }
@@ -194,7 +212,8 @@ export function AddressAutocomplete({
   };
 
   const handleSelect = (result: NominatimResult) => {
-    const formatted = formatAddress(result);
+    // Pass user input to preserve house number if API didn't return it
+    const formatted = formatAddress(result, inputValue);
     const coords = {
       lat: parseFloat(result.lat),
       lng: parseFloat(result.lon),
@@ -203,6 +222,9 @@ export function AddressAutocomplete({
     setSelectedAddress(formatted);
     setIsValidSelection(true);
     onValidChange?.(true);
+    setInputValue(formatted);
+    onChange(formatted, coords);
+    onAddressSelected?.(formatted, coords);
     setInputValue(formatted);
     onChange(formatted, coords);
     onAddressSelected?.(formatted, coords);
@@ -407,7 +429,7 @@ export function AddressAutocomplete({
                     >
                       <MapPin className="w-4 h-4 mt-0.5 text-primary shrink-0" />
                       <span className="text-sm leading-tight">
-                        {formatAddress(result)}
+                        {formatAddress(result, inputValue)}
                       </span>
                     </button>
                   </li>
