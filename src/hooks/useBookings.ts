@@ -3,6 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Booking, BookingStatus, ScheduleFormData } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { requestRide, getMovaToken, PaymentMethod } from '@/lib/api';
+import { geocodeAddress } from '@/hooks/useGeocode';
 
 // Helper to transform DB row to Booking type
 function transformBooking(row: any): Booking {
@@ -155,56 +157,87 @@ export function useActiveRide() {
   });
 }
 
-// Mock price estimation (in production, this would be an Edge Function)
-function estimatePrice(pickupAddress: string, dropoffAddress: string): number {
-  // Simple mock: base fare + random multiplier
-  const baseFare = 25;
-  const multiplier = 1 + Math.random() * 2; // 1x to 3x
-  return Math.round(baseFare * multiplier * 100) / 100;
+// Pricing constants (shared with driver app)
+const PRICING = {
+  BASE_FARE: 5.00,
+  PRICE_PER_KM: 2.00,
+};
+
+function estimatePrice(distanceKm: number): number {
+  return Math.round((PRICING.BASE_FARE + distanceKm * PRICING.PRICE_PER_KM) * 100) / 100;
+}
+
+// Extended form data with payment info
+export interface CreateRideData extends ScheduleFormData {
+  paymentMethod: PaymentMethod;
+  payBeforeRide: boolean;
 }
 
 export function useCreateBooking() {
-  const { passengerProfile } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: ScheduleFormData) => {
-      if (!passengerProfile?.id) throw new Error('Perfil não encontrado');
+    mutationFn: async (data: CreateRideData) => {
+      const token = await getMovaToken();
+      if (!token) throw new Error('Usuário não autenticado');
 
-      const estimatedValue = estimatePrice(data.pickupAddress, data.dropoffAddress);
+      // Geocode addresses to get coordinates
+      const [originCoords, destCoords] = await Promise.all([
+        geocodeAddress(data.pickupAddress),
+        geocodeAddress(data.dropoffAddress),
+      ]);
 
-      const { data: booking, error } = await supabase
-        .from('bookings')
-        .insert({
-          passenger_id: passengerProfile.id,
-          pickup_address: data.pickupAddress,
-          dropoff_address: data.dropoffAddress,
-          pickup_time: data.pickupTime.toISOString(),
-          arrival_target_time: data.arrivalTargetTime?.toISOString() || null,
-          estimated_value: estimatedValue,
-          status: 'requested',
-        })
-        .select()
-        .single();
+      if (!originCoords || !destCoords) {
+        throw new Error('Não foi possível encontrar as coordenadas dos endereços');
+      }
 
-      if (error) throw error;
+      const origin = {
+        lat: originCoords.lat,
+        lng: originCoords.lng,
+        address: data.pickupAddress,
+      };
 
-      return transformBooking(booking);
+      const destination = {
+        lat: destCoords.lat,
+        lng: destCoords.lng,
+        address: data.dropoffAddress,
+      };
+
+      // Determine payment status based on method and pay before option
+      const paymentStatus = (data.paymentMethod === 'pix' || data.payBeforeRide) ? 'paid' : 'pending';
+
+      // Check if it's scheduled
+      const isScheduled = data.pickupTime > new Date(Date.now() + 5 * 60 * 1000); // More than 5 min from now
+      const scheduledFor = isScheduled ? data.pickupTime.toISOString() : null;
+
+      const result = await requestRide(
+        token,
+        origin,
+        destination,
+        data.paymentMethod,
+        paymentStatus,
+        scheduledFor
+      );
+
+      return result;
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
       queryClient.invalidateQueries({ queryKey: ['nextBooking'] });
+      queryClient.invalidateQueries({ queryKey: ['activeRide'] });
       toast({
-        title: 'Corrida agendada!',
-        description: 'Sua corrida foi agendada com sucesso.',
+        title: 'Corrida solicitada!',
+        description: result.drivers_notified > 0 
+          ? `${result.drivers_notified} motoristas notificados`
+          : 'Buscando motoristas próximos...',
       });
     },
     onError: (error: any) => {
       toast({
         variant: 'destructive',
-        title: 'Erro ao agendar',
-        description: error.message || 'Não foi possível agendar a corrida.',
+        title: 'Erro ao solicitar',
+        description: error.message || 'Não foi possível solicitar a corrida.',
       });
     },
   });

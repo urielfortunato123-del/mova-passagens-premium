@@ -28,10 +28,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { useCreateBooking } from '@/hooks/useBookings';
+import { useCreateBooking, CreateRideData } from '@/hooks/useBookings';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useGeolocation } from '@/hooks/useGeolocation';
-import { ScheduleFormData } from '@/types';
 import { PricePreview } from './PricePreview';
 import { AddressAutocomplete } from '@/components/ui/address-autocomplete';
 import { PaymentMethodSelect, PaymentMethod } from './PaymentMethodSelect';
@@ -131,10 +130,12 @@ export function ScheduleForm() {
       pickupTime.setHours(parseInt(values.pickupHour!), parseInt(values.pickupMinute!), 0, 0);
     }
 
-    const data: ScheduleFormData = {
+    const data: CreateRideData = {
       pickupAddress: values.pickupAddress,
       dropoffAddress: values.dropoffAddress,
       pickupTime,
+      paymentMethod,
+      payBeforeRide: payBeforeRide || paymentMethod === 'pix',
     };
 
     await createBooking.mutateAsync(data);
