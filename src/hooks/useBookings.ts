@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Booking, BookingStatus, ScheduleFormData } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { requestRide, getMovaToken, PaymentMethod } from '@/lib/api';
+import { requestRide, getMovaToken, PaymentMethod, movaSupabase, onboarding } from '@/lib/api';
 import { geocodeAddress } from '@/hooks/useGeocode';
 
 // Helper to transform DB row to Booking type
@@ -181,6 +181,25 @@ export function useCreateBooking() {
     mutationFn: async (data: CreateRideData) => {
       const token = await getMovaToken();
       if (!token) throw new Error('Usuário não autenticado');
+
+      // Get current user and check/create profile
+      const { data: { user } } = await movaSupabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
+
+      // Check if user has a passenger profile
+      const { data: existingProfile } = await movaSupabase
+        .from('users_profile')
+        .select('id, role')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (!existingProfile) {
+        // Create profile via onboarding
+        console.log('Creating passenger profile before ride request...');
+        const userName = user.user_metadata?.name || user.email?.split('@')[0] || 'Passageiro';
+        await onboarding(token, userName);
+        console.log('Profile created successfully');
+      }
 
       // Geocode addresses to get coordinates
       const [originCoords, destCoords] = await Promise.all([
