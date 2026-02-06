@@ -170,6 +170,50 @@ export type Database = {
           },
         ]
       }
+      driver_profiles: {
+        Row: {
+          created_at: string | null
+          is_online: boolean | null
+          last_lat: number | null
+          last_lng: number | null
+          last_seen: string | null
+          user_id: string
+          vehicle_model: string | null
+          vehicle_plate: string | null
+          vehicle_year: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          is_online?: boolean | null
+          last_lat?: number | null
+          last_lng?: number | null
+          last_seen?: string | null
+          user_id: string
+          vehicle_model?: string | null
+          vehicle_plate?: string | null
+          vehicle_year?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          is_online?: boolean | null
+          last_lat?: number | null
+          last_lng?: number | null
+          last_seen?: string | null
+          user_id?: string
+          vehicle_model?: string | null
+          vehicle_plate?: string | null
+          vehicle_year?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_profiles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users_profile"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       favorite_addresses: {
         Row: {
           address: string
@@ -282,12 +326,187 @@ export type Database = {
           },
         ]
       }
+      ride_events: {
+        Row: {
+          created_at: string | null
+          event_type: string
+          id: string
+          payload: Json | null
+          ride_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          event_type: string
+          id?: string
+          payload?: Json | null
+          ride_id: string
+        }
+        Update: {
+          created_at?: string | null
+          event_type?: string
+          id?: string
+          payload?: Json | null
+          ride_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ride_events_ride_id_fkey"
+            columns: ["ride_id"]
+            isOneToOne: false
+            referencedRelation: "rides"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ride_offers: {
+        Row: {
+          created_at: string | null
+          driver_id: string
+          expires_at: string
+          id: string
+          ride_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string | null
+          driver_id: string
+          expires_at: string
+          id?: string
+          ride_id: string
+          status?: string
+        }
+        Update: {
+          created_at?: string | null
+          driver_id?: string
+          expires_at?: string
+          id?: string
+          ride_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ride_offers_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "users_profile"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ride_offers_ride_id_fkey"
+            columns: ["ride_id"]
+            isOneToOne: false
+            referencedRelation: "rides"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rides: {
+        Row: {
+          created_at: string | null
+          dest_address: string
+          dest_lat: number
+          dest_lng: number
+          driver_id: string | null
+          id: string
+          origin_address: string
+          origin_lat: number
+          origin_lng: number
+          passenger_id: string
+          price_cents: number | null
+          scheduled_for: string | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          dest_address: string
+          dest_lat: number
+          dest_lng: number
+          driver_id?: string | null
+          id?: string
+          origin_address: string
+          origin_lat: number
+          origin_lng: number
+          passenger_id: string
+          price_cents?: number | null
+          scheduled_for?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          dest_address?: string
+          dest_lat?: number
+          dest_lng?: number
+          driver_id?: string | null
+          id?: string
+          origin_address?: string
+          origin_lat?: number
+          origin_lng?: number
+          passenger_id?: string
+          price_cents?: number | null
+          scheduled_for?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rides_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "users_profile"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rides_passenger_id_fkey"
+            columns: ["passenger_id"]
+            isOneToOne: false
+            referencedRelation: "users_profile"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users_profile: {
+        Row: {
+          created_at: string | null
+          full_name: string
+          id: string
+          phone: string | null
+          role: string
+        }
+        Insert: {
+          created_at?: string | null
+          full_name: string
+          id: string
+          phone?: string | null
+          role: string
+        }
+        Update: {
+          created_at?: string | null
+          full_name?: string
+          id?: string
+          phone?: string | null
+          role?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      find_nearby_drivers: {
+        Args: { p_lat: number; p_limit?: number; p_lng: number }
+        Returns: {
+          distance_km: number
+          driver_id: string
+        }[]
+      }
       get_passenger_id: { Args: never; Returns: string }
+      haversine_distance: {
+        Args: { lat1: number; lat2: number; lng1: number; lng2: number }
+        Returns: number
+      }
       upsert_address_history: {
         Args: { p_address: string; p_lat?: number; p_lng?: number }
         Returns: string
