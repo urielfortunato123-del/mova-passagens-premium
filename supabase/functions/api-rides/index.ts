@@ -7,6 +7,17 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
 };
 
+type PaymentMethodInput = 'credit' | 'debit' | 'cash' | 'pix' | 'credit_card' | 'debit_card';
+type PaymentMethodDB = 'credit' | 'debit' | 'cash' | 'pix';
+type PaymentStatus = 'pending' | 'paid' | 'refunded';
+
+// Normaliza payment_method para o formato do banco
+function normalizePaymentMethod(method: PaymentMethodInput): PaymentMethodDB {
+  if (method === 'credit_card') return 'credit';
+  if (method === 'debit_card') return 'debit';
+  return method as PaymentMethodDB;
+}
+
 interface CreateRideRequest {
   origin: {
     lat: number;
@@ -18,8 +29,12 @@ interface CreateRideRequest {
     lng: number;
     address: string;
   };
+  // Formato 1: campos separados (app motorista)
+  payment_method?: PaymentMethodInput;
+  payment_status?: PaymentStatus;
+  // Formato 2: objeto aninhado (app passageiro)
   payment?: {
-    method: 'credit' | 'debit' | 'cash' | 'pix';
+    method: PaymentMethodInput;
     pay_before: boolean;
   };
   scheduled_for?: string | null;
@@ -101,13 +116,19 @@ serve(async (req) => {
       );
     }
 
-    // Payment validation
-    const paymentMethod = body.payment?.method || 'cash';
-    const payBefore = body.payment?.pay_before || false;
+    // Payment validation - suporta ambos formatos
+    const rawPaymentMethod = body.payment_method || body.payment?.method || 'cash';
+    const paymentMethod = normalizePaymentMethod(rawPaymentMethod);
     
-    // PIX always requires paying before
+    // Determina se é pagamento antecipado
+    const payBefore = body.payment?.pay_before || false;
+    const isPaidFromRequest = body.payment_status === 'paid';
+    
+    // PIX sempre requer pagamento antes, crédito pode ser antecipado
     const requiresPaymentBefore = paymentMethod === 'pix' || (paymentMethod === 'credit' && payBefore);
-    const paymentStatus = requiresPaymentBefore ? 'pending' : 'pending'; // Will be 'paid' after processing
+    
+    // Se veio payment_status = 'paid', respeita; senão usa 'pending'
+    const paymentStatus: PaymentStatus = isPaidFromRequest ? 'paid' : 'pending';
 
     // Create the ride with MATCHING status
     const { data: ride, error: rideError } = await supabaseAdmin
