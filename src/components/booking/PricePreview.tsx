@@ -1,6 +1,6 @@
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { MapPin, Navigation, Clock, Info, Loader2 } from 'lucide-react';
+import { Clock, Info, Loader2, CreditCard, Banknote, QrCode, Wallet } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { PaymentMethod } from './PaymentMethodSelect';
 
 interface PricePreviewProps {
   open: boolean;
@@ -17,10 +18,19 @@ interface PricePreviewProps {
   pickupAddress: string;
   dropoffAddress: string;
   pickupTime?: Date;
+  paymentMethod: PaymentMethod;
+  payBeforeRide: boolean;
   onConfirm: () => void;
   isLoading?: boolean;
   isInstant?: boolean;
 }
+
+const paymentLabels: Record<PaymentMethod, { label: string; icon: React.ElementType }> = {
+  credit: { label: 'Cartão de Crédito', icon: CreditCard },
+  debit: { label: 'Cartão de Débito', icon: Wallet },
+  cash: { label: 'Dinheiro', icon: Banknote },
+  pix: { label: 'PIX', icon: QrCode },
+};
 
 // Mock price estimation
 function estimatePrice(): number {
@@ -35,11 +45,14 @@ export function PricePreview({
   pickupAddress,
   dropoffAddress,
   pickupTime,
+  paymentMethod,
+  payBeforeRide,
   onConfirm,
   isLoading,
   isInstant = false,
 }: PricePreviewProps) {
   const estimatedPrice = estimatePrice();
+  const PaymentIcon = paymentLabels[paymentMethod].icon;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -104,6 +117,22 @@ export function PricePreview({
                 R$ {estimatedPrice.toFixed(2)}
               </span>
             </div>
+          </div>
+
+          {/* Payment Method */}
+          <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary">
+            <PaymentIcon className="w-5 h-5 text-muted-foreground" />
+            <div className="flex-1">
+              <p className="text-sm font-medium">{paymentLabels[paymentMethod].label}</p>
+              <p className="text-xs text-muted-foreground">
+                {payBeforeRide ? 'Pagamento antecipado' : 'Pagamento ao motorista'}
+              </p>
+            </div>
+            {payBeforeRide && (
+              <span className="px-2 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-700 dark:text-amber-400">
+                Pagar antes
+              </span>
+            )}
           </div>
 
           {/* Waiting info */}

@@ -34,6 +34,7 @@ import { useGeolocation } from '@/hooks/useGeolocation';
 import { ScheduleFormData } from '@/types';
 import { PricePreview } from './PricePreview';
 import { AddressAutocomplete } from '@/components/ui/address-autocomplete';
+import { PaymentMethodSelect, PaymentMethod } from './PaymentMethodSelect';
 import { toast } from 'sonner';
 
 // Schema for instant ride (no date/time required)
@@ -64,6 +65,8 @@ export function ScheduleForm() {
   const [showPreview, setShowPreview] = useState(false);
   const [pickupValid, setPickupValid] = useState(false);
   const [dropoffValid, setDropoffValid] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash');
+  const [payBeforeRide, setPayBeforeRide] = useState(false);
   const { data: favorites = [] } = useFavorites();
   const createBooking = useCreateBooking();
   const { loading: geoLoading, getCurrentLocation } = useGeolocation();
@@ -382,6 +385,13 @@ export function ScheduleForm() {
             </>
           )}
 
+          {/* Payment Method Selection */}
+          <PaymentMethodSelect
+            value={paymentMethod}
+            onChange={setPaymentMethod}
+            payBeforeRide={payBeforeRide}
+            onPayBeforeChange={setPayBeforeRide}
+          />
           <Button
             type="submit"
             size="lg"
@@ -399,6 +409,8 @@ export function ScheduleForm() {
         pickupAddress={watchedValues.pickupAddress}
         dropoffAddress={watchedValues.dropoffAddress}
         pickupTime={getPickupTime()}
+        paymentMethod={paymentMethod}
+        payBeforeRide={payBeforeRide || paymentMethod === 'pix'}
         onConfirm={handlePreviewConfirm}
         isLoading={createBooking.isPending}
         isInstant={isInstant}
