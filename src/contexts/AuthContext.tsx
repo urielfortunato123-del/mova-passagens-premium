@@ -1,18 +1,46 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
-import { PassengerProfile, SignUpFormData } from '@/types';
+import { movaSupabase, onboarding, getMovaToken } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
+
+interface UserProfile {
+  id: string;
+  full_name: string;
+  phone?: string;
+  role: 'passenger' | 'driver';
+}
+
+// Alias para compatibilidade com código antigo
+interface PassengerProfile {
+  id: string;
+  userId: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  photo?: string;
+  city?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+interface SignUpFormData {
+  email: string;
+  password: string;
+  name: string;
+  phone?: string;
+}
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
-  passengerProfile: PassengerProfile | null;
+  userProfile: UserProfile | null;
+  passengerProfile: PassengerProfile | null; // Alias para compatibilidade
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   signUp: (data: SignUpFormData) => Promise<void>;
   logout: () => Promise<void>;
   refreshProfile: () => Promise<void>;
+  getToken: () => Promise<string | null>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -20,31 +48,35 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [passengerProfile, setPassengerProfile] = useState<PassengerProfile | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
+  // Criar passengerProfile como alias de userProfile para compatibilidade
+  const passengerProfile: PassengerProfile | null = userProfile && user ? {
+    id: userProfile.id,
+    userId: userProfile.id,
+    name: userProfile.full_name,
+    email: user.email,
+    phone: userProfile.phone,
+  } : null;
+
   const fetchProfile = async (userId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('passenger_profiles')
+      const { data, error } = await movaSupabase
+        .from('users_profile')
         .select('*')
-        .eq('user_id', userId)
+        .eq('id', userId)
         .maybeSingle();
 
       if (error) throw error;
 
       if (data) {
-        setPassengerProfile({
+        setUserProfile({
           id: data.id,
-          userId: data.user_id,
-          name: data.name,
-          email: data.email,
+          full_name: data.full_name,
           phone: data.phone || undefined,
-          photo: data.photo || undefined,
-          city: data.city || undefined,
-          createdAt: data.created_at || undefined,
-          updatedAt: data.updated_at || undefined,
+          role: data.role,
         });
       }
     } catch (error) {
@@ -58,9 +90,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const getToken = async (): Promise<string | null> => {
+    return getMovaToken();
+  };
+
   useEffect(() => {
     // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+    const { data: { subscription } } = movaSupabase.auth.onAuthStateChange(
       async (event, currentSession) => {
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
@@ -69,7 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // Use setTimeout to avoid race conditions with Supabase
           setTimeout(() => fetchProfile(currentSession.user.id), 100);
         } else {
-          setPassengerProfile(null);
+          setUserProfile(null);
         }
 
         setIsLoading(false);
@@ -77,7 +113,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
 
     // THEN get initial session
-    supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
+    movaSupabase.auth.getSession().then(({ data: { session: initialSession } }) => {
       setSession(initialSession);
       setUser(initialSession?.user ?? null);
 
@@ -94,7 +130,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { error } = await movaSupabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -120,7 +156,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signUp = async (data: SignUpFormData) => {
     setIsLoading(true);
     try {
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      // 1. Create auth user
+      const { data: authData, error: authError } = await movaSupabase.auth.signUp({
         email: data.email,
         password: data.password,
         options: {
@@ -130,22 +167,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (authError) throw authError;
 
-      if (authData.user) {
-        // Create passenger profile
-        const { error: profileError } = await supabase
-          .from('passenger_profiles')
-          .insert({
-            user_id: authData.user.id,
-            name: data.name,
-            email: data.email,
-            phone: data.phone || null,
-          });
-
-        if (profileError) throw profileError;
+      if (authData.user && authData.session) {
+        // 2. Call onboarding API to create profile
+        const token = authData.session.access_token;
+        await onboarding(token, data.name, data.phone);
 
         toast({
           title: 'Conta criada!',
           description: 'Sua conta foi criada com sucesso.',
+        });
+      } else {
+        toast({
+          title: 'Verifique seu email',
+          description: 'Enviamos um link de confirmação para seu email.',
         });
       }
     } catch (error: any) {
@@ -162,8 +196,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
-      await supabase.auth.signOut();
-      setPassengerProfile(null);
+      await movaSupabase.auth.signOut();
+      setUserProfile(null);
       toast({
         title: 'Até logo!',
         description: 'Você saiu da sua conta.',
@@ -182,12 +216,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{
         user,
         session,
+        userProfile,
         passengerProfile,
         isLoading,
         login,
         signUp,
         logout,
         refreshProfile,
+        getToken,
       }}
     >
       {children}
