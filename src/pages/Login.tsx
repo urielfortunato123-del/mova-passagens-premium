@@ -38,21 +38,24 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 
-// Logo component with MOVA branding
+// Logo component with MOVA branding - Liquid Glass style
 function MovaLogo({ className }: { className?: string }) {
   return (
     <div className={`relative ${className}`}>
-      {/* Outer glow ring */}
-      <div className="absolute inset-0 rounded-full bg-primary/20 blur-xl animate-pulse-slow" />
-      {/* Main logo container */}
-      <div className="relative w-24 h-24 rounded-full bg-gradient-to-br from-primary to-primary-glow flex items-center justify-center shadow-glow">
+      {/* Outer glass blur ring */}
+      <div className="absolute -inset-4 rounded-full bg-primary/10 blur-2xl animate-pulse-slow" />
+      <div className="absolute -inset-2 rounded-full bg-gradient-to-br from-white/10 to-transparent blur-xl" />
+      {/* Main logo container - Liquid Glass effect */}
+      <div className="relative w-28 h-28 rounded-full backdrop-blur-2xl bg-gradient-to-br from-white/20 via-primary/30 to-primary/50 flex items-center justify-center border border-white/30 shadow-[0_8px_32px_hsl(var(--primary)/0.4),inset_0_2px_0_hsl(255_255%_255%/0.3),inset_0_-2px_8px_hsl(var(--primary)/0.3)]">
+        {/* Inner glow */}
+        <div className="absolute inset-2 rounded-full bg-gradient-to-br from-primary/60 to-primary-glow/80 shadow-inner" />
         {/* Inner icon - stylized M */}
         <svg
           viewBox="0 0 48 48"
           fill="none"
-          className="w-12 h-12 text-primary-foreground"
+          className="w-14 h-14 text-white relative z-10 drop-shadow-lg"
           stroke="currentColor"
-          strokeWidth="3"
+          strokeWidth="2.5"
           strokeLinecap="round"
           strokeLinejoin="round"
         >
@@ -141,15 +144,18 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background relative overflow-hidden">
-      {/* Decorative background elements */}
+      {/* Decorative background elements - Liquid Glass style */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-primary/5 blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full bg-primary/5 blur-3xl" />
+        <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full bg-gradient-to-tr from-primary/15 to-transparent blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-gradient-radial from-primary/5 to-transparent blur-2xl" />
       </div>
 
-      {/* Theme toggle - top right */}
+      {/* Theme toggle - glass button */}
       <div className="absolute top-4 right-4 z-20">
-        <ThemeToggle />
+        <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-full p-1 shadow-lg">
+          <ThemeToggle />
+        </div>
       </div>
 
       {/* Main content */}
@@ -299,12 +305,12 @@ export default function Login() {
                 </div>
 
                 <div className="flex justify-center gap-4">
-                  <button type="button" className="social-btn" aria-label="Login com Facebook">
+                  <button type="button" className="w-14 h-14 rounded-2xl backdrop-blur-xl bg-white/10 border border-white/20 flex items-center justify-center transition-all duration-300 hover:bg-white/20 hover:scale-105 hover:shadow-lg" aria-label="Login com Facebook">
                     <svg className="w-5 h-5 text-primary" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
                     </svg>
                   </button>
-                  <button type="button" className="social-btn" aria-label="Login com Google">
+                  <button type="button" className="w-14 h-14 rounded-2xl backdrop-blur-xl bg-white/10 border border-white/20 flex items-center justify-center transition-all duration-300 hover:bg-white/20 hover:scale-105 hover:shadow-lg" aria-label="Login com Google">
                     <svg className="w-5 h-5" viewBox="0 0 24 24">
                       <path fill="#EA4335" d="M5.26620003,9.76452941 C6.19878754,6.93863203 8.85444915,4.90909091 12,4.90909091 C13.6909091,4.90909091 15.2181818,5.50909091 16.4181818,6.49090909 L19.9090909,3 C17.7818182,1.14545455 15.0545455,0 12,0 C7.27006974,0 3.1977497,2.69829785 1.23999023,6.65002441 L5.26620003,9.76452941 Z"/>
                       <path fill="#34A853" d="M16.0407269,18.0125889 C14.9509167,18.7163016 13.5660892,19.0909091 12,19.0909091 C8.86648613,19.0909091 6.21911939,17.076871 5.27698177,14.2678769 L1.23746264,17.3349879 C3.19279051,21.2936293 7.26500293,24 12,24 C14.9328362,24 17.7353462,22.9573905 19.834192,20.9995801 L16.0407269,18.0125889 Z"/>
@@ -312,7 +318,7 @@ export default function Login() {
                       <path fill="#FBBC05" d="M5.27698177,14.2678769 C5.03832634,13.556323 4.90909091,12.7937589 4.90909091,12 C4.90909091,11.2182781 5.03443647,10.4668121 5.26620003,9.76452941 L1.23999023,6.65002441 C0.43658717,8.26043162 0,10.0753848 0,12 C0,13.9195484 0.444780743,15.7## Z"/>
                     </svg>
                   </button>
-                  <button type="button" className="social-btn" aria-label="Login com Apple">
+                  <button type="button" className="w-14 h-14 rounded-2xl backdrop-blur-xl bg-white/10 border border-white/20 flex items-center justify-center transition-all duration-300 hover:bg-white/20 hover:scale-105 hover:shadow-lg" aria-label="Login com Apple">
                     <svg className="w-5 h-5 text-foreground" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/>
                     </svg>
