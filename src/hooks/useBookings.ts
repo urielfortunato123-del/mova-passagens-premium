@@ -193,12 +193,14 @@ export function useCreateBooking() {
         .eq('id', user.id)
         .maybeSingle();
 
-      if (!existingProfile) {
-        // Create profile via onboarding
-        console.log('Creating passenger profile before ride request...');
+      const needsPassengerRole = !existingProfile || existingProfile.role !== 'passenger';
+
+      if (needsPassengerRole) {
+        // Ensure passenger profile via onboarding
+        console.log('Ensuring passenger profile before ride request...');
         const userName = user.user_metadata?.name || user.email?.split('@')[0] || 'Passageiro';
         await onboarding(token, userName);
-        console.log('Profile created successfully');
+        console.log('Passenger profile ensured successfully');
       }
 
       // Geocode addresses to get coordinates

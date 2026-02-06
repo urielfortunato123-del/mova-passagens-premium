@@ -147,16 +147,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         console.log('Profile check:', { existingProfile, profileError });
 
-        if (!existingProfile) {
-          // User doesn't have a profile, create one
+        const needsPassengerRole = !existingProfile || existingProfile.role !== 'passenger';
+
+        if (needsPassengerRole) {
+          // User doesn't have a passenger profile (or has another role) → ensure passenger via onboarding
           try {
             const token = authData.session.access_token;
             const userName = authData.user.user_metadata?.name || email.split('@')[0];
-            console.log('Creating profile via onboarding for:', userName);
+            console.log('Ensuring passenger profile via onboarding for:', userName);
             await onboarding(token, userName);
-            console.log('Profile created successfully via onboarding');
-            
-            // Fetch the newly created profile
+            console.log('Passenger profile ensured successfully via onboarding');
+
+            // Fetch the newly created/updated profile
             await fetchProfile(authData.user.id);
           } catch (onboardingError) {
             console.error('Onboarding failed:', onboardingError);
@@ -168,7 +170,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             throw onboardingError;
           }
         } else {
-          // Profile exists, fetch it
+          // Profile exists and is passenger, fetch it
           await fetchProfile(authData.user.id);
         }
       }
