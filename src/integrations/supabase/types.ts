@@ -55,6 +55,72 @@ export type Database = {
           },
         ]
       }
+      admin_users: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          role: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          role?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          role?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      api_keys: {
+        Row: {
+          api_key: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          is_active: boolean | null
+          last_used_at: string | null
+          last_used_ip: string | null
+          name: string
+          scopes: string[] | null
+          usage_count: number | null
+        }
+        Insert: {
+          api_key: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_used_at?: string | null
+          last_used_ip?: string | null
+          name: string
+          scopes?: string[] | null
+          usage_count?: number | null
+        }
+        Update: {
+          api_key?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_used_at?: string | null
+          last_used_ip?: string | null
+          name?: string
+          scopes?: string[] | null
+          usage_count?: number | null
+        }
+        Relationships: []
+      }
       booking_messages: {
         Row: {
           booking_id: string
@@ -503,13 +569,27 @@ export type Database = {
         }[]
       }
       get_passenger_id: { Args: never; Returns: string }
+      has_admin_role: {
+        Args: { _role: string; _user_id: string }
+        Returns: boolean
+      }
       haversine_distance: {
         Args: { lat1: number; lat2: number; lng1: number; lng2: number }
         Returns: number
       }
+      is_admin: { Args: { _user_id?: string }; Returns: boolean }
       upsert_address_history: {
         Args: { p_address: string; p_lat?: number; p_lng?: number }
         Returns: string
+      }
+      validate_api_key: {
+        Args: { p_api_key: string }
+        Returns: {
+          is_valid: boolean
+          key_id: string
+          key_name: string
+          scopes: string[]
+        }[]
       }
     }
     Enums: {
